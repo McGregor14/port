@@ -36,6 +36,10 @@ This repository contains materials used to clean and analyse data generated from
     └── reports
         └── figures
 
+# Style decisions
+
+-   Use capitalisation in commented code
+
 # License
 
 This project is licensed under the terms of the [MIT License](https://github.com/McGregor14/port/blob/main/LICENSE).
