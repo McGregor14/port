@@ -30,3 +30,9 @@ save_all_dataframes <- function(path){
   }
   
 }
+
+
+
+# %!in%:
+# Opposite of the %in% operator
+'%!in%' <- Negate(`%in%`)

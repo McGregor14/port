@@ -36,6 +36,12 @@ flare_dat_names <- flare_dat_list %>%
 # Set the new names of the list elements
 names(flare_dat_list) <- flare_dat_names
 
+# Remove all elements of the list with 0 rows
+flare_dat_list <- keep(flare_dat_list, ~ nrow(.x) > 0)
+
+# Print a message 
+flare_dat_names %!in% names(flare_dat_list)
+
 # Split all elements in the list into separate objects in the environment
 flare_dat_list %>% 
   list2env(., envir = .GlobalEnv)
