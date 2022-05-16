@@ -63,4 +63,4 @@ flare_dat_list %>%
 rm(flare_dat_list)
 
 # Save all dataframe objects in the global environment
-save_all_dataframes(path = here("data", "interim","flare"))
+save_all_dataframes(path = here("data", "interim","flare", "step-01"))
