@@ -39,8 +39,21 @@ names(flare_dat_list) <- flare_dat_names
 # Remove all elements of the list with 0 rows
 flare_dat_list <- keep(flare_dat_list, ~ nrow(.x) > 0)
 
-# Print a message 
-flare_dat_names %!in% names(flare_dat_list)
+# Remove the 'completed participants' dataframe
+flare_dat_list <-  flare_dat_list[names(flare_dat_list) != "completed_participant_ids"]
+
+# Print a message giving the names of modules with no data
+empty_modules <- flare_dat_names[which(flare_dat_names %!in% names(flare_dat_list))]
+message(paste0("Modules with no data: ", toString(empty_modules)))
+
+# Remove test participants (without PORT_R_ prefix) and drop ID prefix (PORT_R_)
+flare_dat_list <- map2(flare_dat_list, names(flare_dat_list), ~ filter(.x, str_detect(participant_id, 'PORT_R_')))
+
+flare_dat_list <- flare_dat_list %>% 
+  map(modify_at, "participant_id", substring, 8)
+
+# Drop redundant columns shared across all dataframes in the list
+flare_dat_list <- map(flare_dat_list, ~ (.x %>% select(-c('experiment_id', 'experiment_code'))))
 
 # Split all elements in the list into separate objects in the environment
 flare_dat_list %>% 
@@ -48,8 +61,6 @@ flare_dat_list %>%
 
 # Remove original grouped list of datasets from environment
 rm(flare_dat_list)
-
-
 
 # Save all dataframe objects in the global environment
 save_all_dataframes(path = here("data", "interim","flare"))
