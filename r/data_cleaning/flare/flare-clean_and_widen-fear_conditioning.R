@@ -134,6 +134,20 @@ headphone_info <- fear_conditioning %>%
   select(participant_id, phase, total_headphone_disconnects) %>% 
   distinct() %>% 
   pivot_wider(names_from = phase, values_from = total_headphone_disconnects, names_prefix = "total_headphone_disconnects_") %>% 
+  mutate(across(.cols = c(total_headphone_disconnects_acquisition, total_headphone_disconnects_extinction), .fns = ~replace_na(., 0))) %>% 
+  mutate(total_headphone_disconnects = rowSums(select(., c(total_headphone_disconnects_acquisition, total_headphone_disconnects_extinction)), na.rm = T)) 
+
+app_exits_info <- fear_conditioning %>% 
+  group_by(participant_id, phase) %>%
+  mutate(
+    total_iti_exits = sum(did_leave_iti == FALSE, na.rm = T),
+    total_trial_exits = sum(did_leave_trial == FALSE, na.rm = T)
+  ) %>% 
+  ungroup() %>% 
+  select(participant_id, phase, total_iti_exits, total_trial_exits) %>% 
+  distinct() %>% 
+  pivot_wider(names_from = phase, values_from = total_headphone_disconnects, names_prefix = "total_headphone_disconnects_") %>% 
+  mutate(across(.cols = c(total_headphone_disconnects_acquisition, total_headphone_disconnects_extinction), .fns = ~replace_na(., 0))) %>% 
   mutate(total_headphone_disconnects = rowSums(select(., c(total_headphone_disconnects_acquisition, total_headphone_disconnects_extinction)), na.rm = T)) 
 
 fear_conditioning %>% 
