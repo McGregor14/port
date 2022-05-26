@@ -9,7 +9,7 @@ source(file = here("r", "functions.R"))
 # Specify the subfolder flare interim data is stored in
 flare_interim_data_loc <- here("data", "interim", "flare", "step-01")
 
-# Read in dataset
+# Read in dataset and remove empty/redundant columns
 fear_conditioning_raw <- read_rds(paste0(flare_interim_data_loc, "/fear_conditioning_data", ".Rds")) %>% 
   clean_names() %>% 
   remove_empty() %>% 
@@ -101,7 +101,7 @@ expectancy_ratings_wide <- fear_conditioning %>%
   arrange(participant_id, variable) %>% 
   pivot_wider(names_from = variable, values_from = rating)
 
-# Generate derived variables for wide expectancy ratings dataset
+# Generate derived variables
 
 # Create dataframe with missed trials info
 number_missing_ratings <- expectancy_ratings_wide %>%
@@ -114,7 +114,55 @@ number_missing_ratings <- expectancy_ratings_wide %>%
   ungroup() %>% 
   select(participant_id, exp_acquisition_missing, exp_extinction_missing)
 
-# Generate derived variables using long dataset
+
+# Create dataframe with response delay info (i.e. the time it took to respond after CS is presented, should be between 3 and 8 seconds)
+response_delay_info <- fear_conditioning %>% 
+  mutate(exp_response_delay_secs = as.numeric(response_recorded_at - trial_started_at)) %>% 
+  group_by(participant_id) %>% 
+  summarise(max_exp_response_delay_secs = max(exp_response_delay_secs, na.rm = T)) %>% 
+  mutate(exp_response_delay_flag = if_else(max_exp_response_delay_secs < 3 | max_exp_response_delay_secs > 8, TRUE, FALSE)) %>% 
+  ungroup()
+
+
+# Create dataframe with time between each trial
+# Maximum time between trials should be ~11 seconds, the sum of:
+# Trial length = 8 seconds
+# Max ITI length = 3 seconds
+# Processing lag of a few seconds
+# Create a flag if max trial delay is greater than the length of two trials
+trial_delay_info <- fear_conditioning %>%
+  select(participant_id, phase, trial, trial_started_at) %>% 
+  group_by(participant_id, phase, trial) %>% 
+  arrange() %>% 
+  group_by(participant_id, phase) %>% 
+  mutate(prev_trial_started_at = lag(trial_started_at),
+         trial_delay_secs = as.numeric(trial_started_at - prev_trial_started_at)) %>% 
+  group_by(participant_id) %>% 
+  summarise(max_trial_delay_secs = max(trial_delay_secs, na.rm = T)) %>% 
+  mutate(max_trial_delay_flag = if_else(max_trial_delay_secs > 22, TRUE, FALSE))
+
+# Create dataframe with length of break
+break_length_info <- fear_conditioning %>%
+  group_by(participant_id, phase) %>% 
+  mutate(last_trial_per_phase = max(trial, na.rm = T),
+         first_trial_per_phase = min(trial, na.rm = T)) %>% 
+  filter((phase == "acquisition" & trial == last_trial_per_phase) | (phase == "extinction" & trial == first_trial_per_phase)) %>% 
+  ungroup() %>% 
+  arrange(participant_id, phase) %>% 
+  group_by(participant_id) %>% 
+  mutate(prev_trial_started_at = lag(trial_started_at),
+         break_length_mins = as.numeric(difftime(trial_started_at, prev_trial_started_at, units = 'mins'))) %>% 
+  select(participant_id, break_length_mins) %>% 
+  ungroup() %>% 
+  drop_na()
+
+# Create dataframe with timing information
+timing_info <- fear_conditioning %>% 
+  group_by(participant_id) %>% 
+  summarise(fc_start_time = min(trial_started_at, na.rm = T),
+            fc_end_time = max(trial_started_at, na.rm = T)) %>% 
+  ungroup() %>% 
+  mutate(fc_duration_mins = difftime(fc_end_time, fc_start_time, units = 'mins'))
 
 # Create dataframe with volume info
 volume_info <- fear_conditioning %>% 
@@ -127,6 +175,7 @@ volume_info <- fear_conditioning %>%
   pivot_wider(names_from = phase, values_from = average_phase_volume, names_prefix = "average_volume_") %>% 
   mutate(volume_exclusion_50pct_acquisition = if_else(average_volume_acquisition <= .5, TRUE, FALSE))
 
+# Create dataframe with info about headphone removals
 headphone_info <- fear_conditioning %>% 
   group_by(participant_id, phase) %>%
   mutate(total_headphone_disconnects = sum(headphones == FALSE, na.rm = T)) %>% 
@@ -137,22 +186,21 @@ headphone_info <- fear_conditioning %>%
   mutate(across(.cols = c(total_headphone_disconnects_acquisition, total_headphone_disconnects_extinction), .fns = ~replace_na(., 0))) %>% 
   mutate(total_headphone_disconnects = rowSums(select(., c(total_headphone_disconnects_acquisition, total_headphone_disconnects_extinction)), na.rm = T)) 
 
+# Create dataframe with info about number of exits
 app_exits_info <- fear_conditioning %>% 
   group_by(participant_id, phase) %>%
   mutate(
-    total_iti_exits = sum(did_leave_iti == FALSE, na.rm = T),
-    total_trial_exits = sum(did_leave_trial == FALSE, na.rm = T)
+    total_iti_exits = sum(did_leave_iti == TRUE, na.rm = T),
+    total_trial_exits = sum(did_leave_trial == TRUE, na.rm = T)
   ) %>% 
   ungroup() %>% 
   select(participant_id, phase, total_iti_exits, total_trial_exits) %>% 
   distinct() %>% 
-  pivot_wider(names_from = phase, values_from = total_headphone_disconnects, names_prefix = "total_headphone_disconnects_") %>% 
-  mutate(across(.cols = c(total_headphone_disconnects_acquisition, total_headphone_disconnects_extinction), .fns = ~replace_na(., 0))) %>% 
-  mutate(total_headphone_disconnects = rowSums(select(., c(total_headphone_disconnects_acquisition, total_headphone_disconnects_extinction)), na.rm = T)) 
-
-fear_conditioning %>% 
-  filter(participant_id == "1JECmREpmmRUB2p") %>% 
-  view()
+  pivot_wider(names_from = phase, values_from = c(total_iti_exits, total_trial_exits)) %>% 
+  mutate(across(.cols = -participant_id, .fns = ~replace_na(., 0))) %>% 
+  mutate(total_iti_exits = rowSums(select(., c(total_iti_exits_acquisition, total_iti_exits_extinction)), na.rm = T),
+         total_trial_exits = rowSums(select(., c(total_trial_exits_acquisition, total_trial_exits_extinction)), na.rm = T),
+         total_exits = total_iti_exits + total_trial_exits)
 
 # Use long expectancy ratings data to impute missing ratings for participants with < 6 missed trials per phase
 # Expectancy ratings will be imputed for participants missing data up to five out of 24 (acquisition) or 36 (extinction) trials per phase, as follows: 
@@ -171,7 +219,19 @@ fear_conditioning %>%
 #     rating = ifelse(trial == 1 & no_missed_ratings < 6 & is.na(rating), mean(rating, na.rm = T), rating)
 #   )
 
-
+# Merge dataframes together
+fear_conditioning <- list(
+  expectancy_ratings_wide,
+  number_missing_ratings,
+  response_delay_info,
+  trial_delay_info,
+  break_length_info,
+  timing_info,
+  volume_info,
+  headphone_info,
+  app_exits_info
+) %>% 
+  reduce(full_join, by = "participant_id")
 
 # Save data
-# saveRDS(fear_conditioning, paste0(here("data", "interim","flare", "step-02"), "/fear_conditioning.Rds"))
+saveRDS(fear_conditioning, paste0(here("data", "interim","flare", "step-02"), "/fear_conditioning.Rds"))
