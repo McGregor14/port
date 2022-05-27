@@ -39,6 +39,7 @@ This repository contains materials used to clean and analyse data generated from
 # Style decisions
 
 -   Use capitalisation in commented code
+-   "exp" at the start of all, and only, expectancy rating variables
 
 # License
 

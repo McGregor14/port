@@ -37,7 +37,7 @@ expectancy_order <- c(
   "exp_acquisition_cs_minus_10",
   "exp_acquisition_cs_minus_11",
   "exp_acquisition_cs_minus_12",
-
+  
   "exp_acquisition_cs_plus_1",
   "exp_acquisition_cs_plus_2",
   "exp_acquisition_cs_plus_3",
@@ -97,7 +97,7 @@ expectancy_ratings_wide <- fear_conditioning %>%
   mutate(
     variable = paste0("exp_", variable),
     variable = factor(variable, levels = expectancy_order)
-    ) %>% 
+  ) %>% 
   arrange(participant_id, variable) %>% 
   pivot_wider(names_from = variable, values_from = rating)
 
@@ -108,19 +108,19 @@ number_missing_ratings <- expectancy_ratings_wide %>%
   rowwise() %>% 
   mutate(
     # Number of missed ratings per phase
-    exp_acquisition_missing = rowSums(is.na(across(contains("acquisition"))), na.rm = T),
-    exp_extinction_missing = rowSums(is.na(across(contains("extinction"))), na.rm = T)
-    ) %>% 
+    missing_exp_acquisition = rowSums(is.na(across(contains("acquisition"))), na.rm = T),
+    missing_exp_extinction = rowSums(is.na(across(contains("extinction"))), na.rm = T)
+  ) %>% 
   ungroup() %>% 
-  select(participant_id, exp_acquisition_missing, exp_extinction_missing)
+  select(participant_id, missing_exp_acquisition, missing_exp_extinction)
 
 
 # Create dataframe with response delay info (i.e. the time it took to respond after CS is presented, should be between 3 and 8 seconds)
-response_delay_info <- fear_conditioning %>% 
-  mutate(exp_response_delay_secs = as.numeric(response_recorded_at - trial_started_at)) %>% 
+rating_delay_info <- fear_conditioning %>% 
+  mutate(rating_delay_secs = as.numeric(difftime(response_recorded_at, trial_started_at, units = 'secs'))) %>% 
   group_by(participant_id) %>% 
-  summarise(max_exp_response_delay_secs = max(exp_response_delay_secs, na.rm = T)) %>% 
-  mutate(exp_response_delay_flag = if_else(max_exp_response_delay_secs < 3 | max_exp_response_delay_secs > 8, TRUE, FALSE)) %>% 
+  summarise(rating_delay_max_secs = max(rating_delay_secs, na.rm = T)) %>% 
+  mutate(rating_delay_flag = if_else(rating_delay_max_secs < 3 | rating_delay_max_secs > 8, TRUE, FALSE)) %>% 
   ungroup()
 
 
@@ -136,10 +136,11 @@ trial_delay_info <- fear_conditioning %>%
   arrange() %>% 
   group_by(participant_id, phase) %>% 
   mutate(prev_trial_started_at = lag(trial_started_at),
-         trial_delay_secs = as.numeric(trial_started_at - prev_trial_started_at)) %>% 
+         trial_delay_secs = as.numeric(difftime(trial_started_at, prev_trial_started_at, units = 'secs'))) %>% 
   group_by(participant_id) %>% 
-  summarise(max_trial_delay_secs = max(trial_delay_secs, na.rm = T)) %>% 
-  mutate(max_trial_delay_flag = if_else(max_trial_delay_secs > 22, TRUE, FALSE))
+  summarise(trial_delay_max_secs = max(trial_delay_secs, na.rm = T)) %>% 
+  mutate(trial_delay_flag = if_else(trial_delay_max_secs > 22, TRUE, FALSE)) %>% 
+  ungroup()
 
 # Create dataframe with length of break
 break_length_info <- fear_conditioning %>%
@@ -172,35 +173,35 @@ volume_info <- fear_conditioning %>%
   select(participant_id, phase, average_phase_volume) %>% 
   distinct() %>% 
   mutate(average_phase_volume = if_else(average_phase_volume > 1, NA_real_, average_phase_volume)) %>% 
-  pivot_wider(names_from = phase, values_from = average_phase_volume, names_prefix = "average_volume_") %>% 
-  mutate(volume_exclusion_50pct_acquisition = if_else(average_volume_acquisition <= .5, TRUE, FALSE))
+  pivot_wider(names_from = phase, values_from = average_phase_volume, names_prefix = "volume_average_") %>% 
+  mutate(volume_exclusion_50pct_acquisition = if_else(volume_average_acquisition <= .5, TRUE, FALSE))
 
 # Create dataframe with info about headphone removals
 headphone_info <- fear_conditioning %>% 
   group_by(participant_id, phase) %>%
-  mutate(total_headphone_disconnects = sum(headphones == FALSE, na.rm = T)) %>% 
+  mutate(headphone_disconnects = sum(headphones == FALSE, na.rm = T)) %>% 
   ungroup() %>% 
-  select(participant_id, phase, total_headphone_disconnects) %>% 
+  select(participant_id, phase, headphone_disconnects) %>% 
   distinct() %>% 
-  pivot_wider(names_from = phase, values_from = total_headphone_disconnects, names_prefix = "total_headphone_disconnects_") %>% 
-  mutate(across(.cols = c(total_headphone_disconnects_acquisition, total_headphone_disconnects_extinction), .fns = ~replace_na(., 0))) %>% 
-  mutate(total_headphone_disconnects = rowSums(select(., c(total_headphone_disconnects_acquisition, total_headphone_disconnects_extinction)), na.rm = T)) 
+  pivot_wider(names_from = phase, values_from = headphone_disconnects, names_prefix = "headphone_disconnects_") %>% 
+  mutate(across(.cols = c(headphone_disconnects_acquisition, headphone_disconnects_extinction), .fns = ~replace_na(., 0))) %>% 
+  mutate(headphone_disconnects_total = rowSums(select(., c(headphone_disconnects_acquisition, headphone_disconnects_extinction)), na.rm = T)) 
 
 # Create dataframe with info about number of exits
 app_exits_info <- fear_conditioning %>% 
   group_by(participant_id, phase) %>%
   mutate(
-    total_iti_exits = sum(did_leave_iti == TRUE, na.rm = T),
-    total_trial_exits = sum(did_leave_trial == TRUE, na.rm = T)
+    iti_exits = sum(did_leave_iti == TRUE, na.rm = T),
+    trial_exits = sum(did_leave_trial == TRUE, na.rm = T)
   ) %>% 
   ungroup() %>% 
-  select(participant_id, phase, total_iti_exits, total_trial_exits) %>% 
+  select(participant_id, phase, iti_exits, trial_exits) %>% 
   distinct() %>% 
-  pivot_wider(names_from = phase, values_from = c(total_iti_exits, total_trial_exits)) %>% 
+  pivot_wider(names_from = phase, values_from = c(iti_exits, trial_exits)) %>% 
   mutate(across(.cols = -participant_id, .fns = ~replace_na(., 0))) %>% 
-  mutate(total_iti_exits = rowSums(select(., c(total_iti_exits_acquisition, total_iti_exits_extinction)), na.rm = T),
-         total_trial_exits = rowSums(select(., c(total_trial_exits_acquisition, total_trial_exits_extinction)), na.rm = T),
-         total_exits = total_iti_exits + total_trial_exits)
+  mutate(iti_exits_total = rowSums(select(., c(iti_exits_acquisition, iti_exits_extinction)), na.rm = T),
+         trial_exits_total = rowSums(select(., c(trial_exits_acquisition, trial_exits_extinction)), na.rm = T)) %>% 
+  mutate(exits_total = rowSums(select(., c(iti_exits_total, trial_exits_total)), na.rm = T))
 
 # Use long expectancy ratings data to impute missing ratings for participants with < 6 missed trials per phase
 # Expectancy ratings will be imputed for participants missing data up to five out of 24 (acquisition) or 36 (extinction) trials per phase, as follows: 
@@ -220,17 +221,15 @@ app_exits_info <- fear_conditioning %>%
 #   )
 
 # Merge dataframes together
-fear_conditioning <- list(
-  expectancy_ratings_wide,
-  number_missing_ratings,
-  response_delay_info,
-  trial_delay_info,
-  break_length_info,
-  timing_info,
-  volume_info,
-  headphone_info,
-  app_exits_info
-) %>% 
+fear_conditioning <- list(expectancy_ratings_wide,
+                          number_missing_ratings,
+                          rating_delay_info,
+                          trial_delay_info,
+                          break_length_info,
+                          timing_info,
+                          volume_info,
+                          headphone_info,
+                          app_exits_info) %>% 
   reduce(full_join, by = "participant_id")
 
 # Save data
