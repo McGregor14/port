@@ -25,7 +25,7 @@ flare_data_names <- flare_data_list %>%
 # Set the new names of the list elements
 names(flare_data_list) <- flare_data_names
 
-# Reorder the list ready for merging
+# Reorder the list ready for merging (doesn't seem to be making a difference)
 flare_data_list <- flare_data_list[c("participants",
                                      "basic_info", 
                                      "affective_ratings", 

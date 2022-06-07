@@ -12,25 +12,32 @@ knit: (function(input, ...) {
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r load packages, include=FALSE}
 library(tidyverse)
 library(here)
 library(ComplexUpset)
+library(gt) # for creating tables
+library(webshot) # required to save gt tables
 ```
-
 
 ```{r read in dataset, include=FALSE}
 flare_data <- read_rds(here("data", "processed", "flare_data.Rds")) %>% 
   filter(started_app == TRUE)
 ```
 
-Descriptive analyses for the FLARe dataset. Exclusions have not been applied and missing data has not been imputed.
+# Introduction
+
+Descriptive analyses for the FLARe dataset collected as part of the PORT study. 
+
+Exclusions have not been applied and missing data has not been imputed.
 
 # Potential exclusions
+
 The following exclusion criteria were submitted in the preregistration:
+
 - Self-reporting that they did not follow the instructions properly for the fear conditioning task (i.e. removed their headphones, did not pay attention, were interrupted)
 -	Self-reporting that they did not find the aversive stimulus unpleasant (i.e. a rating of five out of ten or lower)
 -	Missing six or more trial ratings during the acquisition or extinction phase of the fear conditioning task
@@ -39,11 +46,11 @@ The following exclusion criteria were submitted in the preregistration:
 -	Not completing at least two treatment sessions
 
 ## Self-reported task non-adherance
-```{r task non-adherance, warning=FALSE}
+
+```{r task non-adherance table}
 # Recode variables so that TRUE is always a response that leads to exclusion
-# Transmute so that only relevant variables are kept
 task_non_adherance <- flare_data %>% 
-  transmute(
+  transmute( # Transmute so that only relevant variables are kept
     did_not_follow_instructions = if_else(did_follow_instructions == TRUE, FALSE, TRUE),
     did_remove_headphones,
     did_not_pay_attention = if_else(did_pay_attention == TRUE, FALSE, TRUE),
@@ -53,15 +60,48 @@ task_non_adherance <- flare_data %>%
     was_interrupted
   )
 
-# Get a list of types of self reported exclusions to use as intersect in upset
+task_non_adherance_table <- task_non_adherance %>% 
+  summarise(across(everything(.), ~sum(., na.rm = T))) %>% 
+  pivot_longer(cols = everything(), names_to = "Instructions violation", values_to = "Number reporting") %>%
+  arrange(desc(`Number reporting`)) %>% 
+  mutate(`Instructions violation` = str_to_sentence(str_replace_all(`Instructions violation`, "_", " "))) %>% 
+  gt() %>% 
+   tab_header(
+    title = md("**Number of participants that self-reported each type of instructions violation**"),
+    subtitle = "The same participant may have reported not following more than one instruction"
+  )
+
+task_non_adherance_table
+gtsave(task_non_adherance_table, filename = "task_non_adherance_table.pdf", path = here("reports", "tables"))
+```
+
+```{r task non-adherance upset plot, warning=FALSE}
+# Save a vector of variable names (i.e. the types of self reported exclusions) to use as the 'intersect' argument in upset
 self_reported_exclusions <- names(task_non_adherance)
 
 # Create upset plot
-upset(task_non_adherance, intersect = self_reported_exclusions,
-      name="Self-reported task non-adherance by frequency (n = 271)")
-      
+upset(task_non_adherance, 
+      intersect = self_reported_exclusions,
+      name = "Self-reported task non-adherance by frequency (n = 271)")
 
+
+suppressMessages(ggsave(filename = "task_non_adherance_upset_plot.pdf", plot = last_plot(), path = here("reports", "figures")))
 ```
 
-# Headphone removal
-When did they remove headphones
+### Headphone removal
+
+```{r headphone removal table}
+headphone_removal_table <- flare_data %>% 
+  select(did_remove_headphones, headphones_removal_point) %>% 
+  filter(did_remove_headphones == TRUE) %>% 
+  count(headphones_removal_point) %>% 
+  mutate(headphones_removal_point = str_to_sentence(str_replace_all(headphones_removal_point, "_", " "))) %>% 
+  rename(`Headphones removal point` = headphones_removal_point,
+         `Number reporting` = n) %>% 
+  gt() %>%
+  tab_header(title = md("**Point at which participants self-reported removing their headphones**"))
+
+headphone_removal_table
+gtsave(headphone_removal_table, filename = "headphone_removal_table.pdf", path = here("reports", "tables"))
+```
+
