@@ -34,22 +34,18 @@ Descriptive analyses for the FLARe dataset collected as part of the PORT study.
 
 Exclusions have not been applied and missing data has not been imputed.
 
-# Potential exclusions
+# Pre-registered exclusions
 
-The following exclusion criteria were submitted in the preregistration:
+The following exclusion criteria related to FLARe performance were submitted in the preregistration:
 
 - Self-reporting that they did not follow the instructions properly for the fear conditioning task (i.e. removed their headphones, did not pay attention, were interrupted)
 -	Self-reporting that they did not find the aversive stimulus unpleasant (i.e. a rating of five out of ten or lower)
 -	Missing six or more trial ratings during the acquisition or extinction phase of the fear conditioning task
 -	Having an average device volume of 50% or lower during the acquisition phase of the fear conditioning task
--	Classified by Ieso Digital Health (who provided the CBT) as ineligible for treatment
--	Not completing at least two treatment sessions
 
-## Self-reported task non-adherance
-
-```{r task non-adherance table}
+```{r exclusions wrangling}
 # Recode variables so that TRUE is always a response that leads to exclusion
-task_non_adherance <- flare_data %>% 
+exclusions <- flare_data %>% 
   transmute( # Transmute so that only relevant variables are kept
     did_not_follow_instructions = if_else(did_follow_instructions == TRUE, FALSE, TRUE),
     did_remove_headphones,
@@ -57,10 +53,28 @@ task_non_adherance <- flare_data %>%
     completed_in_public = if_else(task_environment == "private", FALSE, TRUE),
     loud_environment = if_else(was_quiet == TRUE, FALSE, TRUE),
     not_alone,
-    was_interrupted
+    was_interrupted,
+    us_not_aversive = if_else(us_unpleasantness_rating <= 5, TRUE, FALSE),
+    excessive_missed_trials = if_else(missing_exp_acquisition >= 6 | missing_exp_extinction >= 6, TRUE, FALSE),
+    volume_exclusion_50pct_acquisition
   )
+```
 
-task_non_adherance_table <- task_non_adherance %>% 
+```{r exclusions upset plot, warning=FALSE}
+# Save a vector of variable names (i.e. the types of self reported exclusions) to use as the 'intersect' argument in upset
+exclusion_variables <- names(exclusions)
+
+# Create upset plot
+upset(exclusions, 
+      intersect = exclusion_variables,
+      name = "Exclusions by frequency (n = 271)")
+
+# Save last plot
+suppressMessages(ggsave(filename = "exclusions_upset_plot.pdf", plot = last_plot(), path = here("reports", "figures")))
+```
+```{r exclusions table}
+# Create table using gt
+exclusions_table <- exclusions %>% 
   summarise(across(everything(.), ~sum(., na.rm = T))) %>% 
   pivot_longer(cols = everything(), names_to = "Instructions violation", values_to = "Number reporting") %>%
   arrange(desc(`Number reporting`)) %>% 
@@ -71,24 +85,72 @@ task_non_adherance_table <- task_non_adherance %>%
     subtitle = "The same participant may have reported not following more than one instruction"
   )
 
-task_non_adherance_table
-gtsave(task_non_adherance_table, filename = "task_non_adherance_table.pdf", path = here("reports", "tables"))
+# Print and save table
+exclusions_table
+gtsave(exclusions_table, filename = "exclusions_table.pdf", path = here("reports", "tables"))
+
+# Calculate the total number of excluded participants under the preregistered criteria
+exclusions <- exclusions %>% 
+  mutate(flare_exclusion = if_else(rowSums(., na.rm = T) >= 1, TRUE, FALSE))
 ```
 
-```{r task non-adherance upset plot, warning=FALSE}
+# Potential exclusions
+```{r potential exclusions wrangling, include=FALSE, message=FALSE}
+preregistered_exclusions <- exclusions %>% 
+  pull(flare_exclusion)
+
+potential_exclusions <- flare_data %>% 
+  transmute( # Transmute so that only relevant variables are kept
+    rating_delay_flag,
+    trial_delay_flag,
+    break_length_flag = if_else(break_length_mins >= 20, TRUE, FALSE),
+    fc_duration_flag = if_else(fc_duration_mins >= 40, TRUE, FALSE),
+    headphones_disconnected = if_else(headphone_disconnects_total >= 1, TRUE, FALSE),
+    exited_app = if_else(exits_total >= 1, TRUE, FALSE)
+  ) %>% 
+  bind_cols(preregistered_exclusions) %>% 
+  rename(preregistered_exclusions = `...7`)
+```
+
+```{r potential exclusions upset plot, warning=FALSE}
 # Save a vector of variable names (i.e. the types of self reported exclusions) to use as the 'intersect' argument in upset
-self_reported_exclusions <- names(task_non_adherance)
+potential_exclusion_variables <- names(potential_exclusions)
 
 # Create upset plot
-upset(task_non_adherance, 
-      intersect = self_reported_exclusions,
-      name = "Self-reported task non-adherance by frequency (n = 271)")
+upset(potential_exclusions, 
+      intersect = potential_exclusion_variables,
+      name = "Exclusions by frequency (n = 271)")
 
-
-suppressMessages(ggsave(filename = "task_non_adherance_upset_plot.pdf", plot = last_plot(), path = here("reports", "figures")))
+# Save last plot
+suppressMessages(ggsave(filename = "potential_exclusions_upset_plot.pdf", plot = last_plot(), path = here("reports", "figures")))
 ```
 
-### Headphone removal
+```{r potential exclusions table}
+# Create table using gt
+potential_exclusions_table <- potential_exclusions %>% 
+  summarise(across(everything(.), ~sum(., na.rm = T))) %>% 
+  pivot_longer(cols = everything(), names_to = "Instructions violation", values_to = "Number reporting") %>%
+  arrange(desc(`Number reporting`)) %>% 
+  mutate(`Instructions violation` = str_to_sentence(str_replace_all(`Instructions violation`, "_", " "))) %>% 
+  gt() %>% 
+   tab_header(
+    title = md("**Number of participants that self-reported each type of instructions violation**"),
+    subtitle = "The same participant may have reported not following more than one instruction"
+  )
+
+# Print and save table
+potential_exclusions_table
+gtsave(potential_exclusions_table, filename = "potential_exclusions_table.pdf", path = here("reports", "tables"))
+
+# Calculate the total number of excluded participants under the preregistered criteria
+potential_exclusions <- exclusions %>% 
+  mutate(potential_flare_exclusion = if_else(rowSums(., na.rm = T) >= 1, TRUE, FALSE))
+```
+
+
+# Variable exploration
+
+## Headphone removal
 
 ```{r headphone removal table}
 headphone_removal_table <- flare_data %>% 
@@ -104,4 +166,17 @@ headphone_removal_table <- flare_data %>%
 headphone_removal_table
 gtsave(headphone_removal_table, filename = "headphone_removal_table.pdf", path = here("reports", "tables"))
 ```
+
+## US aversiveness
+```{r}
+us_aversiveness <- flare_data %>% 
+  mutate(us_not_aversive = ifelse(
+    test = us_unpleasantness_rating <= 5, 
+    yes = TRUE, 
+    no = FALSE
+  ))
+
+
+```
+
 
