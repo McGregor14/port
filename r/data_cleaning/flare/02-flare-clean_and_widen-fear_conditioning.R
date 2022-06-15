@@ -119,8 +119,14 @@ number_missing_ratings <- expectancy_ratings_wide %>%
 rating_delay_info <- fear_conditioning %>% 
   mutate(rating_delay_secs = as.numeric(difftime(response_recorded_at, trial_started_at, units = 'secs'))) %>% 
   group_by(participant_id) %>% 
-  summarise(rating_delay_max_secs = max(rating_delay_secs, na.rm = T)) %>% 
-  mutate(rating_delay_flag = if_else(rating_delay_max_secs < 3 | rating_delay_max_secs > 8, TRUE, FALSE)) %>% 
+  summarise(
+    rating_delay_min_secs = min(rating_delay_secs, na.rm = T),
+    rating_delay_max_secs = max(rating_delay_secs, na.rm = T)
+    ) %>% 
+  mutate(
+    rating_delay_min_flag = if_else(rating_delay_min_secs < 3, TRUE, FALSE),
+    rating_delay_max_flag = if_else(rating_delay_max_secs > 8, TRUE, FALSE)
+    ) %>% 
   ungroup()
 
 

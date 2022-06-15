@@ -1,5 +1,5 @@
 ---
-title: "Descriptive FLARe analyses"
+title: "FLARe: preliminary descriptive analyses"
 author: "Thomas McGregor"
 date: "`r Sys.Date()`"
 output: html_document
@@ -16,11 +16,11 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r load packages, include=FALSE}
-library(tidyverse)
-library(here)
-library(ComplexUpset)
-library(gt) # for creating tables
-library(webshot) # required to save gt tables
+library(tidyverse) # data manipulation
+library(here) # file referencing
+library(ComplexUpset) # creating upset plots
+library(gt) # creating tables
+library(webshot) # required for saving gt tables
 ```
 
 ```{r read in dataset, include=FALSE}
@@ -30,20 +30,20 @@ flare_data <- read_rds(here("data", "processed", "flare_data.Rds")) %>%
 
 # Introduction
 
-Descriptive analyses for the FLARe dataset collected as part of the PORT study. 
+Descriptive analyses for the FLARe dataset collected as part of the PORT study.
 
-Exclusions have not been applied and missing data has not been imputed.
+Exclusions have not been applied and missing data has not been imputed at this stage.
 
 # Pre-registered exclusions
 
 The following exclusion criteria related to FLARe performance were submitted in the preregistration:
 
-- Self-reporting that they did not follow the instructions properly for the fear conditioning task (i.e. removed their headphones, did not pay attention, were interrupted)
--	Self-reporting that they did not find the aversive stimulus unpleasant (i.e. a rating of five out of ten or lower)
--	Missing six or more trial ratings during the acquisition or extinction phase of the fear conditioning task
--	Having an average device volume of 50% or lower during the acquisition phase of the fear conditioning task
+-   Self-reporting that they did not follow the instructions properly for the fear conditioning task (i.e. removed their headphones, did not pay attention, were interrupted)
+-   Self-reporting that they did not find the aversive stimulus unpleasant (i.e. a rating of five out of ten or lower)
+-   Missing six or more trial ratings during the acquisition or extinction phase of the fear conditioning task
+-   Having an average device volume of 50% or lower during the acquisition phase of the fear conditioning task
 
-```{r exclusions wrangling}
+```{r preregistered exclusions wrangling, include=FALSE}
 # Recode variables so that TRUE is always a response that leads to exclusion
 exclusions <- flare_data %>% 
   transmute( # Transmute so that only relevant variables are kept
@@ -60,7 +60,9 @@ exclusions <- flare_data %>%
   )
 ```
 
-```{r exclusions upset plot, warning=FALSE}
+```{r preregistered exclusions upset plot, warning=FALSE}
+# Warnings silenced to prevent upset plot warning about missing values
+
 # Save a vector of variable names (i.e. the types of self reported exclusions) to use as the 'intersect' argument in upset
 exclusion_variables <- names(exclusions)
 
@@ -70,13 +72,17 @@ upset(exclusions,
       name = "Exclusions by frequency (n = 271)")
 
 # Save last plot
+# Suppress messages to prevent 'saving' message
 suppressMessages(ggsave(filename = "exclusions_upset_plot.pdf", plot = last_plot(), path = here("reports", "figures")))
 ```
-```{r exclusions table}
+
+```{r preregistered exclusions table}
 # Create table using gt
 exclusions_table <- exclusions %>% 
   summarise(across(everything(.), ~sum(., na.rm = T))) %>% 
-  pivot_longer(cols = everything(), names_to = "Instructions violation", values_to = "Number reporting") %>%
+  pivot_longer(cols = everything(), 
+               names_to = "Instructions violation", 
+               values_to = "Number reporting") %>%
   arrange(desc(`Number reporting`)) %>% 
   mutate(`Instructions violation` = str_to_sentence(str_replace_all(`Instructions violation`, "_", " "))) %>% 
   gt() %>% 
@@ -95,21 +101,42 @@ exclusions <- exclusions %>%
 ```
 
 # Potential exclusions
+
+List of other variables that could potentially indicate that participants did not complete the FLARe task properly:
+
+-   `rating_delay_min_flag` - Participant responded to an expectancy rating before the 3 second rating delay
+
+-   `rating_delay_max_flag` - Participant responded to an expectancy rating after the 8 second trial time
+
+-   `trial_delay_flag` - The maximum trial delay is greater than the length of two trials (22 seconds)
+
+-   `break_length_flag` - A break of 20 minutes or longer
+
+-   `fc_duration_flag` - Length of task was 40 minutes or more
+
+-   `headphones_disconnected` - Headphones disconnected at least once during the task
+
+-   `exited_app` - Exited the app at least once during the task
+
 ```{r potential exclusions wrangling, include=FALSE, message=FALSE}
+# Get the column indicating which participants are excluded under the preregistered exclusions list
 preregistered_exclusions <- exclusions %>% 
   pull(flare_exclusion)
 
+# Recode variables so that TRUE is always a response that leads to exclusion
 potential_exclusions <- flare_data %>% 
   transmute( # Transmute so that only relevant variables are kept
-    rating_delay_flag,
+    rating_delay_min_flag,
+    rating_delay_max_flag,
     trial_delay_flag,
     break_length_flag = if_else(break_length_mins >= 20, TRUE, FALSE),
     fc_duration_flag = if_else(fc_duration_mins >= 40, TRUE, FALSE),
     headphones_disconnected = if_else(headphone_disconnects_total >= 1, TRUE, FALSE),
     exited_app = if_else(exits_total >= 1, TRUE, FALSE)
   ) %>% 
+  # Add and rename the column of preregistered exclusions
   bind_cols(preregistered_exclusions) %>% 
-  rename(preregistered_exclusions = `...7`)
+  rename(preregistered_exclusions = `...8`)
 ```
 
 ```{r potential exclusions upset plot, warning=FALSE}
@@ -147,7 +174,6 @@ potential_exclusions <- exclusions %>%
   mutate(potential_flare_exclusion = if_else(rowSums(., na.rm = T) >= 1, TRUE, FALSE))
 ```
 
-
 # Variable exploration
 
 ## Headphone removal
@@ -168,6 +194,7 @@ gtsave(headphone_removal_table, filename = "headphone_removal_table.pdf", path =
 ```
 
 ## US aversiveness
+
 ```{r}
 us_aversiveness <- flare_data %>% 
   mutate(us_not_aversive = ifelse(
@@ -178,5 +205,3 @@ us_aversiveness <- flare_data %>%
 
 
 ```
-
-
