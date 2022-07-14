@@ -170,8 +170,15 @@ potential_exclusions_table
 gtsave(potential_exclusions_table, filename = "potential_exclusions_table.pdf", path = here("reports", "tables"))
 
 # Calculate the total number of excluded participants under the preregistered criteria
-potential_exclusions <- exclusions %>% 
+potential_exclusions <- potential_exclusions %>% 
   mutate(potential_flare_exclusion = if_else(rowSums(., na.rm = T) >= 1, TRUE, FALSE))
+```
+
+```{r}
+flare_exclusions <- potential_exclusions %>% 
+  select(headphones_disconnected, exited_app, preregistered_exclusions) %>% 
+  transmute(flare_exclusion = if_else(rowSums(., na.rm = T) >= 1, TRUE, FALSE)) %>% 
+  pull()
 ```
 
 # Variable exploration
@@ -207,6 +214,7 @@ us_aversiveness <- flare_data %>%
 ```
 
 # Elephant plots
+
 ```{r Elephant wrangling, include=FALSE}
 # Create a list of expectancy rating trial variables
 elephant_long <- flare_data %>% 
@@ -239,10 +247,47 @@ breaks_fun <- function(x) {
     seq(0, 12, 1)
   }
 }
+
+
+flare_data_clean <- flare_data %>% 
+  cbind(flare_exclusions) %>% 
+  filter(flare_exclusions != 1)
+
+# Create a list of expectancy rating trial variables
+elephant_long_clean <- flare_data_clean %>% 
+  select(starts_with("exp_")) %>%
+  mutate(n = nrow(.)) %>% 
+  pivot_longer(cols = -n, names_to = "variable", values_to = "rating") %>% 
+  mutate(variable = str_remove(variable, "exp_")) %>%
+  separate(variable, into = c("phase", "cs", "stimulus", "trial"), sep = "_") %>% 
+  select(-cs) %>% 
+  mutate(trial = as.numeric(trial)) %>% 
+  group_by(phase, stimulus, trial) %>% 
+  summarise(mean = mean(rating, na.rm = T), std_dev = sd(rating, na.rm = T), n = mean(n), .groups = "keep") %>% 
+  mutate(sem = std_dev / sqrt(n),
+         ci_low = mean - 2*(sem),
+         ci_high = mean + 2*(sem)) %>% 
+  ungroup() %>% 
+  mutate(Phase = str_to_sentence(phase),
+         Phase = factor(Phase, levels = c("Acquisition", "Extinction")),
+         Stimulus = factor(stimulus, levels = c("plus", "minus")),
+         Stimulus = fct_recode(Stimulus, "CS+" = "plus", "CS-" = "minus")) %>% 
+  select(Phase, Stimulus, Trial = trial, everything()) %>% 
+  select(-c(phase, stimulus)) %>% 
+  arrange(Phase, Stimulus, Trial)
+
+# Function for breaks
+breaks_fun <- function(x) {
+  if (max(x) > 12) {
+    seq(0, 18, 1)
+  } else {
+    seq(0, 12, 1)
+  }
+}
 ```
 
 ```{r Elephant plot}
-elephant_long %>% 
+elephant_plot_whole_sample <- elephant_long %>% 
   ggplot(aes(x = Trial, y = mean, color = Stimulus)) +
   geom_point() +
   geom_line() +
@@ -270,5 +315,55 @@ elephant_long %>%
     ) +
     scale_x_continuous(breaks = breaks_fun) +
     scale_y_continuous(breaks = seq(0, 10, by = 1), limits = c(1, 9))
+
+# Save
+ggsave(
+  file = paste0(here("reports", "figures"), "/elephant_plot_whole_sample.png"), 
+  plot = elephant_plot_whole_sample, 
+  width = 16, 
+  height = 8, 
+  units = "cm"
+  )
 ```
 
+![Elephant plot from McGregor et al. (2021) for comparison.](images/whole_elephant_mcgregor_2021.png)
+
+```{r}
+elephant_plot_exclusions_applied <- elephant_long_clean %>% 
+  ggplot(aes(x = Trial, y = mean, color = Stimulus)) +
+  geom_point() +
+  geom_line() +
+  geom_ribbon(aes(ymin = ci_low, ymax = ci_high, fill = Stimulus),
+              linetype = 0,
+              alpha = 0.3,
+              size = 0.8
+  ) +
+  scale_fill_manual(values = c("#DF3B57", "#5762D5")) +
+  scale_colour_manual(values = c("#DF3B57", "#5762D5")) +
+  facet_grid(~ Phase, 
+               scales = "free_x",
+               space = "free_x"
+    ) +
+    # adjust the labels
+    labs(y="Mean expectancy rating", 
+         x = "Trials"
+    ) +
+    theme(strip.background = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.position = 'bottom',
+          text = element_text(size = 10),
+          strip.text.x = element_text(size = 10)
+    ) +
+    scale_x_continuous(breaks = breaks_fun) +
+    scale_y_continuous(breaks = seq(0, 10, by = 1), limits = c(1, 9))
+
+# Save
+ggsave(
+  file = paste0(here("reports", "figures"), "/elephant_plot_exclusions_applied.png"), 
+  plot = elephant_plot_exclusions_applied, 
+  width = 16, 
+  height = 8, 
+  units = "cm"
+  )
+```
