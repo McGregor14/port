@@ -1,3 +1,6 @@
+# Clear the environment
+rm(list = ls())
+
 # Load packages
 library(tidyverse) # data manipulation
 library(here) # file referencing
@@ -10,9 +13,9 @@ source(file = here("r", "functions.R"))
 flare_interim_data_loc <- here("data", "interim", "flare", "step-01")
 
 # Read in dataset
-contingency_awareness_raw <- read_rds(paste0(flare_interim_data_loc, "/contingency_awareness_data", ".Rds")) %>% 
+contingency_awareness_raw <- read_rds(paste0(flare_interim_data_loc, "/contingency-awareness-data", ".Rds")) %>% 
   clean_names() %>% 
-  remove_empty() %>% 
+  remove_empty(which = c("rows", "cols")) %>% 
   remove_constant(na.rm = T, quiet = F)
 
 # Clean and widen dataset
@@ -24,4 +27,4 @@ contingency_awareness <- contingency_awareness_raw %>%
   )
 
 # Save data
-saveRDS(contingency_awareness, paste0(here("data", "interim","flare", "step-02"), "/contingency_awareness.Rds"))
+saveRDS(contingency_awareness, here("data", "interim", "flare", "step-02", "contingency-awareness.Rds"))

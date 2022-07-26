@@ -22,4 +22,4 @@ mid_app_data <- mid_app_data %>%
   rename(participant_id = port_id)
 
 # Save data
-saveRDS(mid_app_data, here("data", "interim", "qualtrics", "step-01", "mid_app_data.Rds"))
+saveRDS(mid_app_data, here("data", "interim", "qualtrics", "step-01", "mid-app-data.Rds"))

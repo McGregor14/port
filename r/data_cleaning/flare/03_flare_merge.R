@@ -27,16 +27,16 @@ names(flare_data_list) <- flare_data_names
 
 # Reorder the list ready for merging (doesn't seem to be making a difference)
 flare_data_list <- flare_data_list[c("participants",
-                                     "basic_info", 
-                                     "affective_ratings", 
-                                     "fear_conditioning", 
-                                     "contingency_awareness", 
-                                     "us_unpleasantness", 
-                                     "post_experiment_questions")]
+                                     "basic-info", 
+                                     "affective-ratings", 
+                                     "fear-conditioning", 
+                                     "contingency-awareness", 
+                                     "us-unpleasantness", 
+                                     "post-experiment-questions")]
 
 # Merge all elements of the list
 flare_data <- flare_data_list %>% 
   reduce(full_join, by = "participant_id")
 
 # Save data
-saveRDS(flare_data, paste0(here("data", "processed"), "/flare_data.Rds"))
+saveRDS(flare_data, here("data", "processed", "flare-data.Rds"))

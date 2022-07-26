@@ -1,3 +1,6 @@
+# Clear the environment
+rm(list = ls())
+
 # Load packages
 library(tidyverse) # data manipulation
 library(here) # file referencing
@@ -10,9 +13,9 @@ source(file = here("r", "functions.R"))
 flare_interim_data_loc <- here("data", "interim", "flare", "step-01")
 
 # Read in dataset
-affective_ratings_raw <- read_rds(paste0(flare_interim_data_loc, "/affective_rating_data", ".Rds")) %>% 
+affective_ratings_raw <- read_rds(paste0(flare_interim_data_loc, "/affective-rating-data", ".Rds")) %>% 
   clean_names() %>% 
-  remove_empty() %>% 
+  remove_empty(which = c("rows", "cols")) %>% 
   remove_constant(na.rm = T, quiet = F)
 
 # Clean and widen dataset
@@ -38,4 +41,4 @@ affective_ratings <- affective_ratings %>%
   mutate(across(.cols = everything(.), ~replace(., is.nan(.), NA)))
 
 # Save data
-saveRDS(affective_ratings, paste0(here("data", "interim","flare", "step-02"), "/affective_ratings.Rds"))
+saveRDS(affective_ratings, here("data", "interim", "flare", "step-02", "affective-ratings.Rds"))

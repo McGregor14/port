@@ -1,3 +1,6 @@
+# Clear the environment
+rm(list = ls())
+
 # Load packages
 library(tidyverse) # data manipulation
 library(here) # file referencing
@@ -10,9 +13,9 @@ source(file = here("r", "functions.R"))
 flare_interim_data_loc <- here("data", "interim", "flare", "step-01")
 
 # Read in dataset
-us_unpleasantness_raw <- read_rds(paste0(flare_interim_data_loc, "/us_unpleasantness_data", ".Rds")) %>% 
+us_unpleasantness_raw <- read_rds(paste0(flare_interim_data_loc, "/us-unpleasantness-data", ".Rds")) %>% 
   clean_names() %>% 
-  remove_empty() %>% 
+  remove_empty(which = c("rows", "cols")) %>% 
   remove_constant(na.rm = T, quiet = F)
 
 # Clean and widen dataset
@@ -22,4 +25,4 @@ us_unpleasantness <- us_unpleasantness_raw %>%
   )
 
 # Save data
-saveRDS(us_unpleasantness, paste0(here("data", "interim","flare", "step-02"), "/us_unpleasantness.Rds"))
+saveRDS(us_unpleasantness, here("data", "interim", "flare", "step-02", "us-unpleasantness.Rds"))

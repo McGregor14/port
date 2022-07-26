@@ -11,7 +11,7 @@ library(fs) # file system operations
 source(file = here("r", "functions.R"))
 
 # Specify the subfolder raw data is stored in
-raw_data_loc <- here("data", "raw")
+raw_data_loc <- here("data", "raw", "flare")
 
 # Find the name of the latest folder exported from the flare website
 flare_data_loc <- find_latest_flare_folder(experiment_name = "PORT", path_name = raw_data_loc)
@@ -30,8 +30,7 @@ flare_data_list <- flare_csv_files %>%
 flare_data_names <- flare_data_list %>%
   names() %>% 
   str_remove_all(., paste0(flare_data_path, "/", flare_data_loc, "-")) %>%
-  str_remove(., ".csv") %>% 
-  str_replace_all(., "-", "_")
+  str_remove(., ".csv")
 
 # Set the new names of the list elements
 names(flare_data_list) <- flare_data_names
@@ -63,4 +62,4 @@ flare_data_list %>%
 rm(flare_data_list)
 
 # Save all dataframe objects in the global environment
-save_all_dataframes(path = here("data", "interim","flare", "step-01"))
+save_all_dataframes(path = here("data", "interim", "flare", "step-01"))

@@ -1,3 +1,6 @@
+# Clear the environment
+rm(list = ls())
+
 # Load packages
 library(tidyverse) # data manipulation
 library(here) # file referencing
@@ -10,9 +13,9 @@ source(file = here("r", "functions.R"))
 flare_interim_data_loc <- here("data", "interim", "flare", "step-01")
 
 # Read in dataset and remove empty/redundant columns
-fear_conditioning_raw <- read_rds(paste0(flare_interim_data_loc, "/fear_conditioning_data", ".Rds")) %>% 
+fear_conditioning_raw <- read_rds(paste0(flare_interim_data_loc, "/fear-conditioning-data", ".Rds")) %>% 
   clean_names() %>% 
-  remove_empty() %>% 
+  remove_empty(which = c("rows", "cols")) %>% 
   select(-c(module_type, module_id))
 
 # Clean dataset values
@@ -239,4 +242,4 @@ fear_conditioning <- list(expectancy_ratings_wide,
   reduce(full_join, by = "participant_id")
 
 # Save data
-saveRDS(fear_conditioning, paste0(here("data", "interim","flare", "step-02"), "/fear_conditioning.Rds"))
+saveRDS(fear_conditioning, here("data", "interim", "flare", "step-02", "fear-conditioning.Rds"))
