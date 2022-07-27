@@ -24,7 +24,7 @@ library(webshot) # required for saving gt tables
 ```
 
 ```{r read in dataset, include=FALSE}
-flare_data <- read_rds(here("data", "processed", "flare_data.Rds")) %>% 
+flare_data <- read_rds(here("data", "processed", "flare-data.Rds")) %>% 
   filter(started_app == TRUE)
 ```
 
@@ -73,7 +73,7 @@ upset(exclusions,
 
 # Save last plot
 # Suppress messages to prevent 'saving' message
-suppressMessages(ggsave(filename = "exclusions_upset_plot.pdf", plot = last_plot(), path = here("reports", "figures")))
+suppressMessages(ggsave(filename = "upset-plot_exclusions.pdf", plot = last_plot(), path = here("reports", "figures")))
 ```
 
 ```{r preregistered exclusions table}
@@ -93,7 +93,7 @@ exclusions_table <- exclusions %>%
 
 # Print and save table
 exclusions_table
-gtsave(exclusions_table, filename = "exclusions_table.pdf", path = here("reports", "tables"))
+gtsave(exclusions_table, filename = "exclusions-table.pdf", path = here("reports", "tables"))
 
 # Calculate the total number of excluded participants under the preregistered criteria
 exclusions <- exclusions %>% 
@@ -149,7 +149,7 @@ upset(potential_exclusions,
       name = "Exclusions by frequency (n = 271)")
 
 # Save last plot
-suppressMessages(ggsave(filename = "potential_exclusions_upset_plot.pdf", plot = last_plot(), path = here("reports", "figures")))
+suppressMessages(ggsave(filename = "upset-plot_potential-exclusions.pdf", plot = last_plot(), path = here("reports", "figures")))
 ```
 
 ```{r potential exclusions table}
@@ -167,7 +167,7 @@ potential_exclusions_table <- potential_exclusions %>%
 
 # Print and save table
 potential_exclusions_table
-gtsave(potential_exclusions_table, filename = "potential_exclusions_table.pdf", path = here("reports", "tables"))
+gtsave(potential_exclusions_table, filename = "potential-exclusions-table.pdf", path = here("reports", "tables"))
 
 # Calculate the total number of excluded participants under the preregistered criteria
 potential_exclusions <- potential_exclusions %>% 
@@ -197,7 +197,7 @@ headphone_removal_table <- flare_data %>%
   tab_header(title = md("**Point at which participants self-reported removing their headphones**"))
 
 headphone_removal_table
-gtsave(headphone_removal_table, filename = "headphone_removal_table.pdf", path = here("reports", "tables"))
+gtsave(headphone_removal_table, filename = "headphone-removal-table.pdf", path = here("reports", "tables"))
 ```
 
 ## US aversiveness
@@ -318,7 +318,7 @@ elephant_plot_whole_sample <- elephant_long %>%
 
 # Save
 ggsave(
-  file = paste0(here("reports", "figures"), "/elephant_plot_whole_sample.png"), 
+  file = paste0(here("reports", "figures"), "/elephant-plot_whole-sample.png"), 
   plot = elephant_plot_whole_sample, 
   width = 16, 
   height = 8, 
@@ -360,7 +360,7 @@ elephant_plot_exclusions_applied <- elephant_long_clean %>%
 
 # Save
 ggsave(
-  file = paste0(here("reports", "figures"), "/elephant_plot_exclusions_applied.png"), 
+  file = paste0(here("reports", "figures"), "/elephant-plot_exclusions-applied.png"), 
   plot = elephant_plot_exclusions_applied, 
   width = 16, 
   height = 8, 
