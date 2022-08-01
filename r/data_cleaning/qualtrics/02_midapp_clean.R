@@ -103,7 +103,7 @@ mid_app_data <- mid_app_data %>%
     # IUS: Sum of all items
     ius12_midapp_total = rowSums(select(., contains("ius12"))),
     
-    # IUS Prospective Anxiety Subscale: 1, 2, 4, 5, 8, 9, 11
+    # IUS Prospective Anxiety subscale: 1, 2, 4, 5, 8, 9, 11
     ius12_prospective_anxiety_midapp_total = rowSums(select(., c(ius12_midapp_1, 
                                                                  ius12_midapp_2,
                                                                  ius12_midapp_4,
@@ -112,7 +112,7 @@ mid_app_data <- mid_app_data %>%
                                                                  ius12_midapp_9,
                                                                  ius12_midapp_11))),
     
-    # IUS Inhibitory Anxiety Subscale: 3, 6, 7, 10, 12
+    # IUS Inhibitory Anxiety subscale: 3, 6, 7, 10, 12
     ius12_inhibitory_anxiety_midapp_total = rowSums(select(., c(ius12_midapp_3, 
                                                                 ius12_midapp_6,
                                                                 ius12_midapp_7,
