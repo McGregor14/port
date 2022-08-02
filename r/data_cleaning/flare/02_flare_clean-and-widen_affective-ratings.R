@@ -29,14 +29,14 @@ affective_ratings <- affective_ratings_raw %>%
 # Generate derived variables
 affective_ratings <- affective_ratings %>% 
   mutate(
-    baseline_affective_rating_cs_plus = rowMeans(select(., intersect(starts_with('baseline') , ends_with('plus'))), na.rm = T),
-    baseline_affective_rating_cs_minus = rowMeans(select(., intersect(starts_with('baseline') , ends_with('minus'))), na.rm = T),
+    affective_rating_baseline_cs_plus = rowMeans(select(., intersect(starts_with('baseline') , ends_with('plus'))), na.rm = T),
+    affective_rating_baseline_cs_minus = rowMeans(select(., intersect(starts_with('baseline') , ends_with('minus'))), na.rm = T),
     
-    break_affective_rating_cs_plus = rowMeans(select(., intersect(starts_with('break') , ends_with('plus'))), na.rm = T),
-    break_affective_rating_cs_minus = rowMeans(select(., intersect(starts_with('break') , ends_with('minus'))), na.rm = T),
+    affective_rating_break_cs_plus = rowMeans(select(., intersect(starts_with('break') , ends_with('plus'))), na.rm = T),
+    affective_rating_break_cs_minus = rowMeans(select(., intersect(starts_with('break') , ends_with('minus'))), na.rm = T),
     
-    post_affective_rating_cs_plus = rowMeans(select(., intersect(starts_with('post') , ends_with('plus'))), na.rm = T),
-    post_affective_rating_cs_minus = rowMeans(select(., intersect(starts_with('post') , ends_with('minus'))), na.rm = T)
+    affective_rating_post_cs_plus = rowMeans(select(., intersect(starts_with('post') , ends_with('plus'))), na.rm = T),
+    affective_rating_post_cs_minus = rowMeans(select(., intersect(starts_with('post') , ends_with('minus'))), na.rm = T)
   ) %>% 
   mutate(across(.cols = everything(.), ~replace(., is.nan(.), NA)))
 

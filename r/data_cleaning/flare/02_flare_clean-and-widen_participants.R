@@ -5,6 +5,7 @@ rm(list = ls())
 library(tidyverse) # data manipulation
 library(here) # file referencing
 library(janitor) # data cleaning
+library(lubridate) # working with dates/times
 
 # Source function script
 source(file = here("r", "functions.R"))
@@ -20,34 +21,35 @@ participants_raw <- read_rds(paste0(flare_interim_data_loc, "/participants", ".R
 
 # Clean and widen dataset
 participants <- participants_raw %>% 
-  select(-voucher) %>% 
-  mutate(across(.cols = c(current_module, reinforced_stimulus), .fns = ~str_to_lower(str_replace_all(., " ", "_")))) %>% 
-  mutate(across(.cols = c(current_module, reinforced_stimulus), .fns = ~ fct_infreq(as_factor(.))))
+  select(-voucher) %>% # Remove redundant voucher column
+  mutate(across(.cols = c(current_module, reinforced_stimulus), .fns = ~str_to_lower(str_replace_all(., " ", "_")))) %>%
+  mutate(across(.cols = c(current_module, reinforced_stimulus), .fns = ~ fct_infreq(as_factor(.)))) %>% 
+  rename_with(.fn = ~paste0("flare_", .x), .cols = !participant_id) # Add 'flare' as a prefix to all columns except the participant_id column
 
 # Generate derived variables
 participants <- participants %>% 
   mutate(
-    created_date = date(created_at),
-    created_hour = hour(created_at),
+    flare_created_date = date(flare_created_at),
+    flare_created_hour = hour(flare_created_at),
     
-    started_date = date(started_at),
-    started_hour = hour(started_at),
+    flare_started_date = date(flare_started_at),
+    flare_started_hour = hour(flare_started_at),
     
-    finished_date = date(finished_at),
-    finished_hour = hour(finished_at),
+    flare_finished_date = date(flare_finished_at),
+    flare_finished_hour = hour(flare_finished_at),
     
-    completion_duration_mins = as.double(difftime(finished_at, started_at, units = "mins")),
+    flare_completion_duration_mins = as.double(difftime(flare_finished_at, flare_started_at, units = "mins")),
     
-    batch_no = as.integer(factor(created_at)),
+    flare_batch_no = as.integer(factor(flare_created_at)),
     
-    started_app = if_else(
-      condition = !is.na(started_at),
+    flare_started_app = if_else(
+      condition = !is.na(flare_started_at),
       true = TRUE,
       false = FALSE
     ),
     
-    completed_app = if_else(
-      condition = !is.na(completion_duration_mins),
+    flare_completed_app = if_else(
+      condition = !is.na(flare_completion_duration_mins),
       true = TRUE,
       false = FALSE
     )

@@ -5,6 +5,7 @@ rm(list = ls())
 library(tidyverse) # data manipulation
 library(here) # file referencing
 library(janitor) # data cleaning
+library(fedmatch) # for cleaning strings
 
 # Source function script
 source(file = here("r", "functions.R"))
@@ -16,7 +17,7 @@ flare_interim_data_loc <- here("data", "interim", "flare", "step-01")
 post_experiment_questions_raw <- read_rds(paste0(flare_interim_data_loc, "/post-experiment-questions-data", ".Rds")) %>% 
   clean_names() %>% 
   remove_empty(which = c("rows", "cols")) %>% 
-  select(-c(module_type, module_id))
+  select(-c(module_type, module_id, experiment_id, experiment_code))
 
 # Clean and widen dataset
 post_experiment_questions <- post_experiment_questions_raw %>% 
@@ -29,7 +30,8 @@ post_experiment_questions <- post_experiment_questions_raw %>%
   rename(
     experiment_unpleasantness_rating = experiment_unpleasant_rating,
     not_alone = was_alone
-  )
+  ) %>%
+  rename_with(.fn = ~paste0("flare_", .x), .cols = !participant_id) # Add 'flare' as a prefix to all columns except the participant_id column
 
 # Save data
 saveRDS(post_experiment_questions, here("data", "interim", "flare", "step-02", "post-experiment-questions.Rds"))
