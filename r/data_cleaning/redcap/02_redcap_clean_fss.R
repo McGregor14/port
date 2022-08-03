@@ -13,32 +13,16 @@ source(file = here("r", "functions.R"))
 redcap_interim_data_loc <- here("data", "interim", "redcap", "step-01")
 
 # Read in dataset
-fss_raw <- read_rds(paste0(redcap_interim_data_loc, "/redcap-fss-data", ".Rds")) %>% 
-  clean_names() %>% 
+fss_data <- read_rds(paste0(redcap_interim_data_loc, "/redcap-fss-data", ".Rds")) %>% 
   remove_empty(which = c("rows", "cols")) %>% 
   remove_constant(na.rm = T, quiet = F)
-
-# Rename all columns except participant_id
-
-# Replace numeric indicator of collection wave with descriptor
-fss_names <- names(fss_raw[2:length(fss_raw)]) %>%
-  str_replace(., "2$", "baseline") %>% 
-  str_replace(., "4$", "followup")
-
-fss_names <- c("participant_id", fss_names) # Add the id column name back to the vector
-
-names(fss_raw) <- fss_names # Reassign the names to the dataset
-
-# Swap name elements so that collection wave comes before item number
-fss_raw <- fss_raw %>% 
-  rename_with(.fn = ~gsub('fss_(\\d+)_(.*)', 'fss_\\2_\\1', .x), .cols = starts_with('fss'))
 
 # Generate derived variables
 
 # The FSS yields 5 sub scales and one total score
 # Scale scores are calculated as the sum of respective items
 # No items are reverse scored
-fss_data <- fss_raw %>% 
+fss_data <- fss_data %>% 
   mutate(
     
     # FSS: Sum of all items

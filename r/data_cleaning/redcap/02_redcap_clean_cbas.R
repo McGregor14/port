@@ -13,27 +13,16 @@ source(file = here("r", "functions.R"))
 redcap_interim_data_loc <- here("data", "interim", "redcap", "step-01")
 
 # Read in dataset
-cbas_raw <- read_rds(paste0(redcap_interim_data_loc, "/redcap-cbas-data", ".Rds")) %>% 
-  clean_names() %>% 
+cbas_data <- read_rds(paste0(redcap_interim_data_loc, "/redcap-cbas-data", ".Rds")) %>% 
   remove_empty(which = c("rows", "cols")) %>% 
   remove_constant(na.rm = T, quiet = F)
 
-# Rename all columns except participant_id
-cbas_names <- names(cbas_raw[2:length(cbas_raw)]) %>% 
-  substr(., 1, nchar(.)-2) %>% # remove the '_2'
-  str_replace(., "_", "_baseline_") %>%  # add '_baseline_' to the middle of the name
-  str_replace_all(., "-", "_")
-
-cbas_names <- c("participant_id", cbas_names) # Add the id column name back to the vector
-
-names(cbas_raw) <- cbas_names # Reassign the names to the dataset
-
 # Generate derived variables
-cbas_data <- cbas_raw %>% 
+cbas_data <- cbas_data %>% 
   mutate(
     
     # CBAS behavioural social subscale: 1, 8, 14, 15, 17, 21, 23, 24
-    cbas_behavioural_social_baseline_total = rowSums(select(.,
+    cbas_baseline_behavioural_social = rowSums(select(.,
                                                             cbas_baseline_1,
                                                             cbas_baseline_8,
                                                             cbas_baseline_14,
@@ -44,7 +33,7 @@ cbas_data <- cbas_raw %>%
                                                             cbas_baseline_24)),
     
     # CBAS behavioural non-social subscale: 3, 6, 9, 10, 11, 13, 28
-    cbas_behavioural_nonsocial_baseline_total = rowSums(select(.,
+    cbas_baseline_behavioural_nonsocial = rowSums(select(.,
                                                                cbas_baseline_3,
                                                                cbas_baseline_6,
                                                                cbas_baseline_9,
@@ -53,7 +42,7 @@ cbas_data <- cbas_raw %>%
                                                                cbas_baseline_28)),
     
     # CBAS cognitive social subscale: 10, 12, 16, 20, 22, 26, 30
-    cbas_cognitive_social_baseline_total = rowSums(select(.,
+    cbas_baseline_cognitive_social = rowSums(select(.,
                                                           cbas_baseline_10,
                                                           cbas_baseline_12,
                                                           cbas_baseline_16,
@@ -63,7 +52,7 @@ cbas_data <- cbas_raw %>%
                                                           cbas_baseline_30)),
     
     # CBAS cognitive non-social subscale: 2, 4, 5, 7, 18, 19, 25, 27, 29, 31
-    cbas_cognitive_nonsocial_baseline_total = rowSums(select(.,
+    cbas_baseline_cognitive_nonsocial = rowSums(select(.,
                                                              cbas_baseline_2,
                                                              cbas_baseline_4,
                                                              cbas_baseline_5,

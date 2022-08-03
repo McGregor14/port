@@ -13,27 +13,12 @@ source(file = here("r", "functions.R"))
 redcap_interim_data_loc <- here("data", "interim", "redcap", "step-01")
 
 # Read in dataset
-ius_raw <- read_rds(paste0(redcap_interim_data_loc, "/redcap-ius-data", ".Rds")) %>% 
-  clean_names() %>% 
+ius_data <- read_rds(paste0(redcap_interim_data_loc, "/redcap-ius-data", ".Rds")) %>% 
   remove_empty(which = c("rows", "cols")) %>% 
   remove_constant(na.rm = T, quiet = F)
 
-# Rename all columns except participant_id
-
-# Replace numeric indicator of collection wave with descriptor
-ius_names <- names(ius_raw[2:length(ius_raw)]) %>%
-  str_replace(., "4$", "followup")
-
-ius_names <- c("participant_id", ius_names) # Add the id column name back to the vector
-
-names(ius_raw) <- ius_names # Reassign the names to the dataset
-
-# Swap name elements so that collection wave comes before item number
-ius_raw <- ius_raw %>% 
-  rename_with(.fn = ~gsub('ius12_(\\d+)_(.*)', 'ius12_\\2_\\1', .x), .cols = starts_with('ius12'))
-
 # Generate derived variables
-ius_data <- ius_raw %>% 
+ius_data <- ius_data %>% 
   mutate(
     
     # IUS: Sum of all items
