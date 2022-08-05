@@ -13,7 +13,7 @@ source(file = here("r", "functions.R"))
 redcap_interim_data_loc <- here("data", "interim", "redcap", "step-01")
 
 # Read in dataset
-asi_data <- read_rds(paste0(redcap_interim_data_loc, "/redcap-asi-data", ".Rds")) 
+asi_data <- read_rds(paste0(redcap_interim_data_loc, "/redcap-asi-data", ".Rds")) %>% 
   remove_empty(which = c("rows", "cols")) %>% 
   remove_constant(na.rm = T, quiet = F)
 

@@ -10,9 +10,9 @@ library(janitor) # data cleaning
 source(file = here("r", "functions.R"))
 
 # Read in redcap csv file stored in the redcap folder
-redcap_raw <- read_csv(here("data", "raw", "redcap", "2022-07-26_anonymised-dataset_tm.csv"),
-                         col_names = TRUE,
-                         trim_ws = TRUE)
+redcap_raw <- read_csv(here("data", "raw", "redcap", "2022-08-04_anonymised-dataset_tm.csv"),
+                       col_names = TRUE,
+                       trim_ws = TRUE)
 
 # Remove test participants (without PORT_R_ prefix)
 redcap_data <- redcap_raw %>% 
@@ -33,54 +33,31 @@ redcap_data <- redcap_data %>%
   # For relevant columns, replace number at the end of strings with the correct wave of data collection
   
   # Screening
-  rename_with(.fn = ~str_replace(., "1$", "screening"), .cols = starts_with(c('asi',
-                                                                              'cbas',
-                                                                              'fss',
-                                                                              'gad',
-                                                                              'ius',
-                                                                              'phq',
-                                                                              'pmh',
-                                                                              'pswq',
-                                                                              'stai',
-                                                                              'wsas'))) %>% 
-  
-  # Baseline
-  rename_with(.fn = ~str_replace(., "2$", "baseline"), .cols = starts_with(c('asi',
-                                                                              'cbas',
-                                                                              'fss',
-                                                                              'gad',
-                                                                              'ius',
-                                                                              'phq',
-                                                                              'pmh',
-                                                                              'pswq',
-                                                                              'stai',
-                                                                              'wsas'))) %>% 
-  
-  # Follow-up
-  rename_with(.fn = ~str_replace(., "4$", "followup"), .cols = starts_with(c('asi',
-                                                                              'cbas',
-                                                                              'fss',
-                                                                              'gad',
-                                                                              'ius',
-                                                                              'phq',
-                                                                              'pmh',
-                                                                              'pswq',
-                                                                              'stai',
-                                                                              'wsas'))) %>% 
+  rename_with(.fn = 
+                ~str_replace(., "1$", "screening") %>% 
+                str_replace(., "2$", "baseline") %>% 
+                str_replace(., "4$", "followup"), 
+              .cols = 
+                starts_with(c('asi',
+                              'cbas',
+                              'fss',
+                              'gad',
+                              'ius',
+                              'phq',
+                              'pmh',
+                              'pswq',
+                              'stai',
+                              'wsas'))) %>% 
   
   # Swap name elements so that collection wave comes before item number
-  rename_with(.fn = ~gsub('asi_(\\d+)_(.*)', 'asi_\\2_\\1', .x), .cols = starts_with('asi')) %>% 
-  rename_with(.fn = ~gsub('cbas_(\\d+)_(.*)', 'cbas_\\2_\\1', .x), .cols = starts_with('cbas')) %>% 
-  rename_with(.fn = ~gsub('fss_(\\d+)_(.*)', 'fss_\\2_\\1', .x), .cols = starts_with('fss')) %>% 
-  rename_with(.fn = ~gsub('gad7_(\\d+)_(.*)', 'gad7_\\2_\\1', .x), .cols = starts_with('gad7')) %>% 
-  rename_with(.fn = ~gsub('ius12_(\\d+)_(.*)', 'ius12_\\2_\\1', .x), .cols = starts_with('ius12')) %>% 
-  rename_with(.fn = ~gsub('phq9_(\\d+)_(.*)', 'phq9_\\2_\\1', .x), .cols = starts_with('phq9')) %>% 
-  rename_with(.fn = ~gsub('pmh_(\\d+)_(.*)', 'pmh_\\2_\\1', .x), .cols = starts_with('pmh')) %>% 
-  rename_with(.fn = ~gsub('pswq_(\\d+)_(.*)', 'pswq_\\2_\\1', .x), .cols = starts_with('pswq')) %>% 
-  rename_with(.fn = ~gsub('stai_(\\d+)_(.*)', 'stai_\\2_\\1', .x), .cols = starts_with('stai')) %>% 
-  rename_with(.fn = ~gsub('wsas_(\\d+)_(.*)', 'wsas_\\2_\\1', .x), .cols = starts_with('wsas')) 
-  
-  
+  rename_with(
+    .fn = ~gsub(
+      pattern = '(asi|cbas|fss|gad7|ius12|phq9|pmh|pswq|stai|wsas)_(\\d+)_(.*)', 
+      replacement = '\\1_\\3_\\2', 
+      .x
+    ), 
+    .cols = matches('^(asi|cbas|fss|gad7|ius12|phq9|pmh|pswq|stai|wsas)')
+  )
 
 # Generate different datasets for each measure
 

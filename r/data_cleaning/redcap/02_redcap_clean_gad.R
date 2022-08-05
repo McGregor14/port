@@ -15,8 +15,7 @@ redcap_interim_data_loc <- here("data", "interim", "redcap", "step-01")
 # Read in dataset
 gad_data <- read_rds(paste0(redcap_interim_data_loc, "/redcap-gad-data", ".Rds")) %>% 
   remove_empty(which = c("rows", "cols")) %>% 
-  remove_constant(na.rm = T, quiet = F) %>% 
-  select(-contains("raw_score")) # Remove raw score columns and recalculate later on
+  remove_constant(na.rm = T, quiet = F)
 
 # Generate derived variables
 gad_data <- gad_data %>% 
