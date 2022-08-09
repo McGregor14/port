@@ -78,22 +78,22 @@ phq_data <- phq_data %>%
     # PHQ9 binary depression: >=10 - depression diagnosis
     phq9_screening_binary_depression = 
       case_when(
-        phq9_screening_total < 10 ~ FALSE,
         phq9_screening_total >= 10 ~ TRUE,
+        phq9_screening_total < 10 ~ FALSE,
         TRUE ~ NA
       ),
     
     phq9_baseline_binary_depression = 
       case_when(
-        phq9_baseline_total < 10 ~ FALSE,
         phq9_baseline_total >= 10 ~ TRUE,
+        phq9_baseline_total < 10 ~ FALSE,
         TRUE ~ NA
       ),
     
     phq9_followup_binary_depression = 
       case_when(
-        phq9_followup_total < 10 ~ FALSE,
         phq9_followup_total >= 10 ~ TRUE,
+        phq9_followup_total < 10 ~ FALSE,
         TRUE ~ NA
       )
    
