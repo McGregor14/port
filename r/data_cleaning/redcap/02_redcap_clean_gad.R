@@ -55,7 +55,51 @@ gad_data <- gad_data %>%
         gad7_followup_total >= 15 ~ "severe",
         TRUE ~ NA_character_
       ), 
-      levels = c("minimal", "mild", "moderate", "severe"))
+      levels = c("minimal", "mild", "moderate", "severe")),
+    
+    # GAD7 binary anxiety: >=10 - anxiety diagnosis
+    gad7_screening_binary_anxiety = 
+      case_when(
+        gad7_screening_total >= 10 ~ TRUE,
+        gad7_screening_total < 10 ~ FALSE,
+        TRUE ~ NA
+      ),
+    
+    gad7_baseline_binary_anxiety = 
+      case_when(
+        gad7_baseline_total >= 10 ~ TRUE,
+        gad7_baseline_total < 10 ~ FALSE,
+        TRUE ~ NA
+      ),
+    
+    gad7_followup_binary_anxiety = 
+      case_when(
+        gad7_followup_total >= 10 ~ TRUE,
+        gad7_followup_total < 10 ~ FALSE,
+        TRUE ~ NA
+      ),
+    
+    # GAD7 IAPT anxiety: >=8 - IAPT anxiety diagnosis
+    gad7_screening_iapt_anxiety = 
+      case_when(
+        gad7_screening_total >= 8 ~ TRUE,
+        gad7_screening_total < 8 ~ FALSE,
+        TRUE ~ NA
+      ),
+    
+    gad7_baseline_iapt_anxiety = 
+      case_when(
+        gad7_baseline_total >= 8 ~ TRUE,
+        gad7_baseline_total < 8 ~ FALSE,
+        TRUE ~ NA
+      ),
+    
+    gad7_followup_iapt_anxiety = 
+      case_when(
+        gad7_followup_total >= 8 ~ TRUE,
+        gad7_followup_total < 8 ~ FALSE,
+        TRUE ~ NA
+      )
     
   )
 
