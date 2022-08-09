@@ -31,8 +31,6 @@ redcap_data <- redcap_data %>%
   rename_with(.fn = ~str_remove(., "_scale"), .cols = starts_with("pmh")) %>%
   
   # For relevant columns, replace number at the end of strings with the correct wave of data collection
-  
-  # Screening
   rename_with(.fn = 
                 ~str_replace(., "1$", "screening") %>% 
                 str_replace(., "2$", "baseline") %>% 
@@ -57,7 +55,37 @@ redcap_data <- redcap_data %>%
       .x
     ), 
     .cols = matches('^(asi|cbas|fss|gad7|ius12|phq9|pmh|pswq|stai|wsas)')
+  ) %>% 
+ 
+  # PHQ specific renaming for variables following a different pattern 
+  
+  # Remove item number from intent question
+  rename_with(
+    .fn = ~str_remove(., "_10"), 
+    .cols = matches('^phq9_intent')
+  ) %>% 
+  
+  # Swap elements of the intent variables
+  rename_with(
+    .fn = ~gsub(
+      pattern = '(phq9)_(.*)_(.*)', 
+      replacement = '\\1_\\3_\\2', 
+      .x
+    ), 
+    .cols = matches('^phq9_intent')
+  ) %>% 
+  
+  # Swap elements of the risk variables
+  rename_with(
+    .fn = ~gsub(
+      pattern = '(phq9)_(.*)_(.*)_(.*)', 
+      replacement = '\\1_\\4_\\2_\\3', 
+      .x
+    ), 
+    .cols = matches('^phq9_risk')
   )
+
+
 
 # Generate different datasets for each measure
 

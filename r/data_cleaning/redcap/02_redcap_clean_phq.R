@@ -17,14 +17,6 @@ phq_data <- read_rds(paste0(redcap_interim_data_loc, "/redcap-phq-data", ".Rds")
   remove_empty(which = c("rows", "cols"))%>% 
   select(participant_id, matches("\\d$"), everything())
 
-# Rename 
-phq_data_test <- phq_data %>% 
-  # Remove item number from intent question
-  rename_with(
-    .fn = ~str_remove(., "_10"), 
-    .cols = matches('^phq9_intent')
-  )
-
 # Clean existing variables
 phq_data <- phq_data %>% 
   mutate(
@@ -44,12 +36,12 @@ phq_data <- phq_data %>%
 phq_data <- phq_data %>% 
   mutate(
     
-    # phq9: Sum of all individual items (1-9)
+    # PHQ9: Sum of all individual items (1-9)
     phq9_screening_total = rowSums(select(., starts_with("phq9") & contains("screening") & matches("\\d$"))),
     phq9_baseline_total = rowSums(select(., starts_with("phq9") & contains("baseline") & matches("\\d$"))),
     phq9_followup_total = rowSums(select(., starts_with("phq9") & contains("followup") & matches("\\d$"))),
     
-    # phq9 severity: 0-4 minimal, 5-9 mild, 10-14 moderate, 15-19 moderately severe, 20+ severe
+    # PHQ9 severity: 0-4 minimal, 5-9 mild, 10-14 moderate, 15-19 moderately severe, 20+ severe
     phq9_screening_severity = factor(
       case_when(
         phq9_screening_total < 5 ~ "minimal",
@@ -83,7 +75,7 @@ phq_data <- phq_data %>%
       ), 
       levels = c("minimal", "mild", "moderate", "moderately_severe", "severe")),
     
-    # phq9 binary depression: >=10 - depression diagnosis
+    # PHQ9 binary depression: >=10 - depression diagnosis
     phq9_screening_binary_depression = 
       case_when(
         phq9_screening_total < 10 ~ FALSE,
