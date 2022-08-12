@@ -33,7 +33,7 @@ pswq_data <- pswq_data %>%
     pswq_followup_3,
     pswq_followup_8,
     pswq_followup_10,
-    pswq_followup_11,),
+    pswq_followup_11),
     
     ~ 5 + 1 - .))
 
