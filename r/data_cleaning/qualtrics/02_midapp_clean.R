@@ -50,16 +50,18 @@ mid_app_data %>%
 # To use the eACS as a one factor measure, first reverse the following items: 1, 2, 3, 4, 5, 7, 8, 13, 14
 
 mid_app_data <- mid_app_data %>% 
-  mutate(across(.cols = c(eacs_midapp_1,
-                          eacs_midapp_2,
-                          eacs_midapp_3,
-                          eacs_midapp_4,
-                          eacs_midapp_5,
-                          eacs_midapp_7,
-                          eacs_midapp_8,
-                          eacs_midapp_13,
-                          eacs_midapp_14), 
-                ~ 4 + 1 - .))
+  mutate(across(.cols = c(
+    eacs_midapp_1,
+    eacs_midapp_2,
+    eacs_midapp_3,
+    eacs_midapp_4,
+    eacs_midapp_5,
+    eacs_midapp_7,
+    eacs_midapp_8,
+    eacs_midapp_13,
+    eacs_midapp_14), 
+    
+    ~ 4 + 1 - .))
 
 # BIS/BAS:
 # Items 1, 3-21, 23-24 are reverse-scored.
@@ -67,29 +69,31 @@ mid_app_data <- mid_app_data %>%
 # Items 1, 6, 11, 17 are filler items and do not correspond to any subscale.
 
 mid_app_data <- mid_app_data %>% 
-  mutate(across(.cols = c(bis_bas_midapp_1,
-                          bis_bas_midapp_3,
-                          bis_bas_midapp_4,
-                          bis_bas_midapp_5,
-                          bis_bas_midapp_6,
-                          bis_bas_midapp_7,
-                          bis_bas_midapp_8,
-                          bis_bas_midapp_9,
-                          bis_bas_midapp_10,
-                          bis_bas_midapp_11,
-                          bis_bas_midapp_12,
-                          bis_bas_midapp_13,
-                          bis_bas_midapp_14,
-                          bis_bas_midapp_15,
-                          bis_bas_midapp_16,
-                          bis_bas_midapp_17,
-                          bis_bas_midapp_18,
-                          bis_bas_midapp_19,
-                          bis_bas_midapp_20,
-                          bis_bas_midapp_21,
-                          bis_bas_midapp_23,
-                          bis_bas_midapp_24), 
-                ~ 4 + 1 - .))
+  mutate(across(.cols = c(
+    bis_bas_midapp_1,
+    bis_bas_midapp_3,
+    bis_bas_midapp_4,
+    bis_bas_midapp_5,
+    bis_bas_midapp_6,
+    bis_bas_midapp_7,
+    bis_bas_midapp_8,
+    bis_bas_midapp_9,
+    bis_bas_midapp_10,
+    bis_bas_midapp_11,
+    bis_bas_midapp_12,
+    bis_bas_midapp_13,
+    bis_bas_midapp_14,
+    bis_bas_midapp_15,
+    bis_bas_midapp_16,
+    bis_bas_midapp_17,
+    bis_bas_midapp_18,
+    bis_bas_midapp_19,
+    bis_bas_midapp_20,
+    bis_bas_midapp_21,
+    bis_bas_midapp_23,
+    bis_bas_midapp_24), 
+    
+    ~ 4 + 1 - .))
 
 # TODO: epq?
 
@@ -105,19 +109,19 @@ mid_app_data <- mid_app_data %>%
     
     # IUS Prospective Anxiety subscale: 1, 2, 4, 5, 8, 9, 11
     ius12_midapp_prospective_anxiety = rowSums(select(., c(ius12_midapp_1, 
-                                                                 ius12_midapp_2,
-                                                                 ius12_midapp_4,
-                                                                 ius12_midapp_5,
-                                                                 ius12_midapp_8,
-                                                                 ius12_midapp_9,
-                                                                 ius12_midapp_11))),
+                                                           ius12_midapp_2,
+                                                           ius12_midapp_4,
+                                                           ius12_midapp_5,
+                                                           ius12_midapp_8,
+                                                           ius12_midapp_9,
+                                                           ius12_midapp_11))),
     
     # IUS Inhibitory Anxiety subscale: 3, 6, 7, 10, 12
     ius12_midapp_inhibitory_anxiety = rowSums(select(., c(ius12_midapp_3, 
-                                                                ius12_midapp_6,
-                                                                ius12_midapp_7,
-                                                                ius12_midapp_10,
-                                                                ius12_midapp_12))),
+                                                          ius12_midapp_6,
+                                                          ius12_midapp_7,
+                                                          ius12_midapp_10,
+                                                          ius12_midapp_12))),
     
     # BIS: 2, 8, 13, 16, 19, 22, 24
     bis_midapp_total = rowSums(select(., c(bis_bas_midapp_2, 
@@ -130,22 +134,22 @@ mid_app_data <- mid_app_data %>%
     
     # BAS Drive: 3, 9, 12, 21
     bas_midapp_drive = rowSums(select(., c(bis_bas_midapp_3, 
-                                                 bis_bas_midapp_9,
-                                                 bis_bas_midapp_12,
-                                                 bis_bas_midapp_21))),
+                                           bis_bas_midapp_9,
+                                           bis_bas_midapp_12,
+                                           bis_bas_midapp_21))),
     
     # BAS Fun Seeking: 5, 10, 15, 20 
     bas_midapp_fun_seeking = rowSums(select(., c(bis_bas_midapp_5, 
-                                                       bis_bas_midapp_10,
-                                                       bis_bas_midapp_15,
-                                                       bis_bas_midapp_20))),
+                                                 bis_bas_midapp_10,
+                                                 bis_bas_midapp_15,
+                                                 bis_bas_midapp_20))),
     
     # BAS Reward Responsiveness: 4, 7, 14, 18, 23
     bas_midapp_reward_responsiveness = rowSums(select(., c(bis_bas_midapp_4, 
-                                                                 bis_bas_midapp_7,
-                                                                 bis_bas_midapp_14,
-                                                                 bis_bas_midapp_18,
-                                                                 bis_bas_midapp_23))),
+                                                           bis_bas_midapp_7,
+                                                           bis_bas_midapp_14,
+                                                           bis_bas_midapp_18,
+                                                           bis_bas_midapp_23))),
     
     # TODO: EPQ-R-N Scale: ?
     epq_r_midapp_nscale = rowSums(select(., contains("epq_r_nscale")))
