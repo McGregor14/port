@@ -10,7 +10,7 @@ library(janitor) # data cleaning
 source(file = here("r", "functions.R"))
 
 # Read in redcap csv file stored in the redcap folder
-redcap_raw <- read_csv(here("data", "raw", "redcap", "2022-08-04_anonymised-dataset_tm.csv"),
+redcap_raw <- read_csv(here("data", "raw", "redcap", "2022-08-24_anonymised-dataset_tm.csv"),
                        col_names = TRUE,
                        trim_ws = TRUE)
 
@@ -22,6 +22,10 @@ redcap_data <- redcap_raw %>%
 redcap_data <- redcap_data %>% 
   mutate(port_id = substring(port_id, 8)) %>% 
   rename(participant_id = port_id)
+
+# Drop unnecessary columns
+redcap_data <- redcap_data %>% 
+  select(-final_survey_2_questions_timestamp)
 
 # Clean names
 redcap_data <- redcap_data %>% 
@@ -78,14 +82,30 @@ redcap_data <- redcap_data %>%
   # Swap elements of the risk variables
   rename_with(
     .fn = ~gsub(
-      pattern = '(phq9)_(.*)_(.*)_(.*)', 
+      pattern = '(port)_(.*)_(.*)_(.*)', 
       replacement = '\\1_\\4_\\2_\\3', 
       .x
     ), 
     .cols = matches('^phq9_risk')
+  ) %>% 
+  
+  # Ethnic origin specific renaming
+  
+  # Fix "ethic" typo
+  rename_with(
+    .fn = ~str_replace(., "ethic", "ethnic"), 
+    .cols = matches('^ethic')
+  ) %>% 
+  
+  # Timestamp specific renaming
+  rename_with(
+    .fn = ~gsub(
+      pattern = '(port2|port3|port5)_(.*)_(survey)_(timestamp)', 
+      replacement = '\\2_\\4', 
+      .x
+    ), 
+    .cols = matches('timestamp$')
   )
-
-
 
 # Generate different datasets for each measure
 

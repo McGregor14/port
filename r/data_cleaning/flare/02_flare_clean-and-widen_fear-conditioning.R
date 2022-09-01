@@ -108,13 +108,11 @@ expectancy_ratings_wide <- fear_conditioning %>%
 
 # Create dataframe with missed trials info
 number_missing_ratings <- expectancy_ratings_wide %>%
-  rowwise() %>% 
   mutate(
     # Number of missed ratings per phase
-    missing_exp_acquisition = rowSums(is.na(across(contains("acquisition"))), na.rm = T),
-    missing_exp_extinction = rowSums(is.na(across(contains("extinction"))), na.rm = T)
+    missing_exp_acquisition = rowSums(is.na(select(., contains("acquisition"))), na.rm = T),
+    missing_exp_extinction = rowSums(is.na(select(., contains("extinction"))), na.rm = T)
   ) %>% 
-  ungroup() %>% 
   select(participant_id, missing_exp_acquisition, missing_exp_extinction)
 
 
