@@ -2,7 +2,7 @@
 data/
 
 # Credentials file
-credentials
+/credentials
 
 # History files
 .Rhistory
