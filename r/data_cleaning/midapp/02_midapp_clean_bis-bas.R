@@ -11,7 +11,7 @@ source(file = here("r", "functions.R"))
 
 # Specify the subfolder that interim data is stored in
 midapp_interim_data_loc <-
-  here("data", "interim", "qualtrics", "step-01")
+  here("data", "interim", "midapp", "step-01")
 
 # Read in dataset
 bis_bas_data <-
@@ -111,4 +111,4 @@ bis_bas_data <- bis_bas_data %>%
 
 # Save data
 saveRDS(bis_bas_data,
-        here("data", "interim", "qualtrics", "step-02", "bis-bas.Rds"))
+        here("data", "interim", "midapp", "step-02", "bis-bas.Rds"))

@@ -9,7 +9,7 @@ library(validate) # validating new variables
 library(visdat) # visualise missing data
 
 # Read in dataset
-mid_app_data <- read_rds(here("data", "interim", "qualtrics", "step-01", "mid-app-data.Rds")) %>% 
+mid_app_data <- read_rds(here("data", "interim", "midapp", "step-01", "mid-app-data.Rds")) %>% 
   remove_empty(which = c("rows", "cols")) %>% 
   remove_constant(na.rm = T, quiet = F)
 
@@ -60,4 +60,4 @@ mid_app_data %>%
   pull(participant_id)
 
 # Save data
-saveRDS(mid_app_data, here("data", "interim", "qualtrics", "step-02", "mid-app-data.Rds"))
+saveRDS(mid_app_data, here("data", "interim", "midapp", "step-02", "mid-app-data.Rds"))

@@ -8,10 +8,10 @@ library(here) # file referencing
 # Source function script
 source(file = here("r", "functions.R"))
 
-# Read in midapp csv file stored in the qualtrics folder
+# Read in midapp csv file stored in the midapp folder
 mid_app_raw <-
   read_csv(
-    here("data", "raw", "qualtrics", "2022-07-05_midapp-survey.csv"),
+    here("data", "raw", "midapp", "2022-07-05_midapp-survey.csv"),
     col_select = 18:80,
     # First few columns contain redundant meta-data
     col_names = TRUE,
@@ -79,4 +79,4 @@ rm(mid_app_raw)
 rm(mid_app_data)
 
 # Save all dataframe objects in the global environment
-save_all_dataframes(path = here("data", "interim", "qualtrics", "step-01"))
+save_all_dataframes(path = here("data", "interim", "midapp", "step-01"))
