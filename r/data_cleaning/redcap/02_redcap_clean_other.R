@@ -22,9 +22,36 @@ other_data <-
 
 # Clean data
 
-# Age
+# Dates and ages
 other_data <- other_data %>%
-  mutate(demographics_age_screening = date_of_birth %--% sc_date / years(1))
+  mutate(
+    
+    # Date that treatment finished (rename old variable)
+    treatment_finished_date = date_finished_treatment,
+    
+    # Replace 'not completed' with NA for timestamp variables
+    # Note: screening has no character observations so is automatically read-in
+    # as a dttm variable, this could break if a character observation is recorded
+    consentmain_timestamp = na_if(consentmain_timestamp, "[not completed]"),
+    final_timestamp = na_if(final_timestamp, "[not completed]"),
+    
+    # Convert timestamps to dates and rename
+    screening_date = as_date(screening_timestamp),
+    baseline_date = as_date(consentmain_timestamp),
+    followup_date = as_date(final_timestamp),
+    
+    # Age at screening
+    demographics_age_at_screening = date_of_birth %--% screening_date / years(1),
+    
+    # Followup time since therapy
+    # Time between last therapy session and the followup survey
+    treatment_followup_time_since_therapy = treatment_finished_date %--% followup_date / days(1),
+    treatment_followup_time_since_therapy = replace(
+      treatment_followup_time_since_therapy,
+      which(treatment_followup_time_since_therapy < 0),
+      NA)
+  )
+
 
 # Gender:
 # 0 - Male
@@ -55,7 +82,11 @@ other_data <- other_data %>%
                "dont_know",
                "prefer_not_to_answer"
              )
-           )))
+           )),
+         
+         # Lump together levels with less than 5 observations to avoid identifiable data
+         demographics_gender = fct_lump_min(demographics_gender, min = 5, other_level = "small_n_identifiable")
+         )
 
 # Employment:
 # 1 - Full-time employed
@@ -104,14 +135,13 @@ other_data <- other_data %>%
           "unemployed_health_disability",
           "other"
         )
-      ))
+      )),
+    
+    # Lump together levels with less than 5 observations to avoid identifiable data
+    demographics_employment = fct_lump_min(demographics_employment, min = 5, other_level = "small_n_identifiable")
   )
 
 # Ethnic origin:
-
-origin <- other_data %>%
-  select(starts_with("ethnic")) %>%
-  names()
 
 # 1 - White
 # 2 - Mixed
@@ -130,7 +160,7 @@ other_data <- other_data %>%
                ethnic_origin_88 == 1 ~ "dont_know",
                ethnic_origin_99 == 1 ~ "prefer_not_to_answer",
                
-               # Specify other and mixed second so that ethnicity is not oversimplified
+               # Specify mixed and other second so that ethnicity is not oversimplified
                ethnic_origin_2 == 1 ~ "mixed",
                ethnic_origin_6 == 1 ~ "other",
                
@@ -152,58 +182,20 @@ other_data <- other_data %>%
                "dont_know",
                "prefer_not_to_answer"
              )
-           )))
+           )),
+         
+         # Lump together levels with less than 5 observations to avoid identifiable data
+         demographics_ethnic_origin = fct_lump_min(demographics_ethnic_origin, min = 5, other_level = "small_n_identifiable")) %>% 
+  
+  # Remove all remaining ethnicity variables
+  # As they are too fine grained (i.e. potentially identifiable to use)
+  select(!starts_with("ethnic"))
 
-# "ethnic_origin_black_1" Caribbean
-# "ethnic_origin_black_2" South African
-# "ethnic_origin_black_3" Kenyan
-# "ethnic_origin_black_4" Nigerian
-# "ethnic_origin_black_5" Ghanaian
-# "ethnic_origin_black_6" Ugandan
-# "ethnic_origin_black_7" Any other black background
-# "ethnic_origin_black_99" Prefer not to say
-
-# "ethnic_origin_asian_1" Indian
-# "ethnic_origin_asian_2" Pakistani
-# "ethnic_origin_asian_3" Chinese
-# "ethnic_origin_asian_4" Bangladeshi
-# "ethnic_origin_asian_5" Sri Lankan
-# "ethnic_origin_asian_6" Iranian
-# "ethnic_origin_asian_7" Other Asian backgrounds
-# "ethnic_origin_asian_99" Prefer not to answer
-
-# "ethnic_origin_mixed_1" White
-# "ethnic_origin_mixed_2" South Asian
-# "ethnic_origin_mixed_3" East Asian
-# "ethnic_origin_mixed_4" Black African
-# "ethnic_origin_mixed_5" Black Caribbean
-# "ethnic_origin_mixed_6" South African
-# "ethnic_origin_mixed_7" Arab
-# "ethnic_origin_mixed_8" Any other mixed background
-# "ethnic_origin_mixed_99" Prefer not to say
-
-# "ethnic_orgin_white_1" British (Scottish, English or Welsh)
-# "ethnic_orgin_white_2" Irish
-# "ethnic_orgin_white_3" Roma or Irish Traveler
-# "ethnic_orgin_white_4" Spanish
-# "ethnic_orgin_white_5" Polish
-# "ethnic_orgin_white_6" German
-# "ethnic_orgin_white_7" French
-# "ethnic_orgin_white_8" Italian
-# "ethnic_orgin_white_9" Other European
-# "ethnic_orgin_white_10" Australian
-# "ethnic_orgin_white_11" American
-# "ethnic_orgin_white_12" Other
-# "ethnic_orgin_white_99" Prefer not to say
-
-# "ethnicity_other"
 
 # Treatment
 other_data <- other_data %>%
   
   mutate(
-    # Date that treatment finished (rename old variable)
-    treatment_date_finished = date_finished_treatment,
     
     # "Did you find your sessions with Ieso helpful?"
     # Question added after the start date of the study
@@ -279,19 +271,14 @@ other_data <- other_data %>%
       )
   )
 
-# Followup time since therapy
-# Time between last therapy session and the followup survey
-other_data <- other_data %>%
-  mutate(
-    final_timestamp = na_if(final_timestamp, "[not completed]"),
-    final_timestamp = as_date(final_timestamp),
-    followup_time_since_therapy = date_finished_treatment %--% final_timestamp / days(1),
-    followup_time_since_therapy = replace(
-      followup_time_since_therapy,
-      which(followup_time_since_therapy < 0),
-      NA
-    )
-  )
+# Remove redundant variables
+other_data <- other_data %>% 
+  select(participant_id,
+         screening_date,
+         baseline_date,
+         followup_date,
+         starts_with("demographics"), 
+         starts_with("treatment"))
 
 # Save data
 saveRDS(other_data,
