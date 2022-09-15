@@ -1,6 +1,9 @@
 # Data folder
 data/
 
+# Credentials file
+credentials.txt
+
 # History files
 .Rhistory
 .Rapp.history
