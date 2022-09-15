@@ -25,7 +25,11 @@ basic_info <- basic_info_raw %>%
     across(.cols = c(device_make, device_model), .fns = ~clean_strings(.)),
     across(.cols = c(device_make, device_model, os_name), .fns = ~str_to_lower(str_replace_all(., " ", "_"))),
     os_name = if_else(str_detect(os_name, "release-keys"), "android", os_name),
-    across(.cols = c(headphone_type, device_make, device_model, os_name), .fns = ~ fct_infreq(as_factor(.)))
+    across(.cols = c(headphone_type, device_make, device_model, os_name), .fns = ~ fct_infreq(as_factor(.))),
+    across(.cols = c(headphone_type, device_make, device_model, os_name), 
+           .fns = ~ fct_lump_min(.,
+                                 min = 5,
+                                 other_level = "small_n_identifiable"))
   )
 
 # Save data
