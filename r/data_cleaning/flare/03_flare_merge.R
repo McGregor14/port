@@ -9,10 +9,10 @@ library(fs) # file system operations
 # Specify the location of data files from step 02 of cleaning
 flare_data_path <- (here("data", "interim", "flare", "step-02"))
 
-# List all the RDS files stored in the latest flare folders
+# List all the RDS files stored in the folder
 flare_rds_files <- dir_ls(flare_data_path, regexp = "\\.Rds$")
 
-# Read in all RDS files stored in the latest flare folder
+# Read in all RDS files stored in the folder
 flare_data_list <- flare_rds_files %>% 
   map(~read_rds(.))
 
@@ -25,7 +25,7 @@ flare_data_names <- flare_data_list %>%
 # Set the new names of the list elements
 names(flare_data_list) <- flare_data_names
 
-# Reorder the list ready for merging (doesn't seem to be making a difference)
+# Reorder the list ready for merging
 flare_data_list <- flare_data_list[c("participants",
                                      "basic-info", 
                                      "affective-ratings", 

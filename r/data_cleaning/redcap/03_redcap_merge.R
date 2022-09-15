@@ -27,7 +27,7 @@ redcap_data_names <- redcap_data_list %>%
 # Set the new names of the list elements
 names(redcap_data_list) <- redcap_data_names
 
-# Reorder the list ready for merging (doesn't seem to be making a difference)
+# Reorder the list ready for merging
 redcap_data_list <- redcap_data_list[c("other",
                                      "asi", 
                                      "cbas", 
