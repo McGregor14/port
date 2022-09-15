@@ -10,17 +10,18 @@ library(janitor) # data cleaning
 source(file = here("r", "functions.R"))
 
 # Specify the subfolder flare interim data is stored in
-redcap_interim_data_loc <- here("data", "interim", "redcap", "step-01")
+redcap_interim_data_loc <-
+  here("data", "interim", "redcap", "step-01")
 
 # Read in dataset
-wsas_data <- read_rds(paste0(redcap_interim_data_loc, "/redcap-wsas-data", ".Rds")) %>% 
-  remove_empty(which = c("rows", "cols")) %>% 
+wsas_data <-
+  read_rds(paste0(redcap_interim_data_loc, "/redcap-wsas-data", ".Rds")) %>%
+  remove_empty(which = c("rows", "cols")) %>%
   remove_constant(na.rm = T, quiet = F)
 
 # Generate derived variables
-wsas_data <- wsas_data %>% 
+wsas_data <- wsas_data %>%
   mutate(
-    
     # WSAS sum of all individual scores (1-5)
     wsas_screening_total = rowSums(select(., contains("wsas_screening"))),
     wsas_baseline_total = rowSums(select(., contains("wsas_baseline"))),
@@ -33,8 +34,9 @@ wsas_data <- wsas_data %>%
         wsas_screening_total < 20 ~ "moderate",
         wsas_screening_total >= 20 ~ "severe",
         TRUE ~ NA_character_
-      ), 
-      levels = c("low", "moderate", "severe")),
+      ),
+      levels = c("low", "moderate", "severe")
+    ),
     
     wsas_baseline_impairment = factor(
       case_when(
@@ -42,8 +44,9 @@ wsas_data <- wsas_data %>%
         wsas_baseline_total < 20 ~ "moderate",
         wsas_baseline_total >= 20 ~ "severe",
         TRUE ~ NA_character_
-      ), 
-      levels = c("low", "moderate", "severe")),
+      ),
+      levels = c("low", "moderate", "severe")
+    ),
     
     wsas_followup_impairment = factor(
       case_when(
@@ -51,9 +54,11 @@ wsas_data <- wsas_data %>%
         wsas_followup_total < 20 ~ "moderate",
         wsas_followup_total >= 20 ~ "severe",
         TRUE ~ NA_character_
-      ), 
-      levels = c("low", "moderate", "severe"))
+      ),
+      levels = c("low", "moderate", "severe")
+    )
   )
 
 # Save data
-saveRDS(wsas_data, here("data", "interim", "redcap", "step-02", "redcap-wsas-data.Rds"))
+saveRDS(wsas_data,
+        here("data", "interim", "redcap", "step-02", "wsas.Rds"))

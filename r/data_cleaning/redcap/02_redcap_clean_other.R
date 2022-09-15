@@ -25,7 +25,6 @@ other_data <-
 # Dates and ages
 other_data <- other_data %>%
   mutate(
-    
     # Date that treatment finished (rename old variable)
     treatment_finished_date = date_finished_treatment,
     
@@ -49,7 +48,8 @@ other_data <- other_data %>%
     treatment_followup_time_since_therapy = replace(
       treatment_followup_time_since_therapy,
       which(treatment_followup_time_since_therapy < 0),
-      NA)
+      NA
+    )
   )
 
 
@@ -62,31 +62,32 @@ other_data <- other_data %>%
 # -99 - Prefer not to answer
 
 other_data <- other_data %>%
-  mutate(demographics_gender =
-           fct_infreq(factor(
-             recode(
-               gender,
-               `0` = "male",
-               `1` = "female",
-               `2` = "non_binary",
-               `3` = "self_define",
-               `-88` = "dont_know",
-               `-99` = "prefer_not_to_answer"
-             ),
-             
-             levels = c(
-               "male",
-               "female",
-               "non_binary",
-               "self_define",
-               "dont_know",
-               "prefer_not_to_answer"
-             )
-           )),
-         
-         # Lump together levels with less than 5 observations to avoid identifiable data
-         demographics_gender = fct_lump_min(demographics_gender, min = 5, other_level = "small_n_identifiable")
-         )
+  mutate(
+    demographics_gender =
+      fct_infreq(factor(
+        recode(
+          gender,
+          `0` = "male",
+          `1` = "female",
+          `2` = "non_binary",
+          `3` = "self_define",
+          `-88` = "dont_know",
+          `-99` = "prefer_not_to_answer"
+        ),
+        
+        levels = c(
+          "male",
+          "female",
+          "non_binary",
+          "self_define",
+          "dont_know",
+          "prefer_not_to_answer"
+        )
+      )),
+    
+    # Lump together levels with less than 5 observations to avoid identifiable data
+    demographics_gender = fct_lump_min(demographics_gender, min = 5, other_level = "small_n_identifiable")
+  )
 
 # Employment:
 # 1 - Full-time employed
@@ -138,7 +139,11 @@ other_data <- other_data %>%
       )),
     
     # Lump together levels with less than 5 observations to avoid identifiable data
-    demographics_employment = fct_lump_min(demographics_employment, min = 5, other_level = "small_n_identifiable")
+    demographics_employment = fct_lump_min(
+      demographics_employment,
+      min = 5,
+      other_level = "small_n_identifiable"
+    )
   )
 
 # Ethnic origin:
@@ -153,39 +158,45 @@ other_data <- other_data %>%
 # 99 - Prefer not to answer
 
 other_data <- other_data %>%
-  mutate(demographics_ethnic_origin =
-           fct_infreq(factor(
-             case_when(
-               # Specify DK and PNTA first so that responses aren't recorded for those who don't wish them to be
-               ethnic_origin_88 == 1 ~ "dont_know",
-               ethnic_origin_99 == 1 ~ "prefer_not_to_answer",
-               
-               # Specify mixed and other second so that ethnicity is not oversimplified
-               ethnic_origin_2 == 1 ~ "mixed",
-               ethnic_origin_6 == 1 ~ "other",
-               
-               ethnic_origin_1 == 1 ~ "white",
-               ethnic_origin_3 == 1 ~ "asian_or_asian_british",
-               ethnic_origin_4 == 1 ~ "black_or_black_british",
-               ethnic_origin_5 == 1 ~ "arab",
-               
-               TRUE ~ NA_character_
-             ),
-             
-             levels = c(
-               "white",
-               "mixed",
-               "asian_or_asian_british",
-               "black_or_black_british",
-               "arab",
-               "other",
-               "dont_know",
-               "prefer_not_to_answer"
-             )
-           )),
-         
-         # Lump together levels with less than 5 observations to avoid identifiable data
-         demographics_ethnic_origin = fct_lump_min(demographics_ethnic_origin, min = 5, other_level = "small_n_identifiable")) %>% 
+  mutate(
+    demographics_ethnic_origin =
+      fct_infreq(factor(
+        case_when(
+          # Specify DK and PNTA first so that responses aren't recorded for those who don't wish them to be
+          ethnic_origin_88 == 1 ~ "dont_know",
+          ethnic_origin_99 == 1 ~ "prefer_not_to_answer",
+          
+          # Specify mixed and other second so that ethnicity is not oversimplified
+          ethnic_origin_2 == 1 ~ "mixed",
+          ethnic_origin_6 == 1 ~ "other",
+          
+          ethnic_origin_1 == 1 ~ "white",
+          ethnic_origin_3 == 1 ~ "asian_or_asian_british",
+          ethnic_origin_4 == 1 ~ "black_or_black_british",
+          ethnic_origin_5 == 1 ~ "arab",
+          
+          TRUE ~ NA_character_
+        ),
+        
+        levels = c(
+          "white",
+          "mixed",
+          "asian_or_asian_british",
+          "black_or_black_british",
+          "arab",
+          "other",
+          "dont_know",
+          "prefer_not_to_answer"
+        )
+      )),
+    
+    # Lump together levels with less than 5 observations to avoid identifiable data
+    demographics_ethnic_origin = fct_lump_min(
+      demographics_ethnic_origin,
+      min = 5,
+      other_level = "small_n_identifiable"
+    )
+  ) %>%
   
   # Remove all remaining ethnicity variables
   # As they are too fine grained (i.e. potentially identifiable to use)
@@ -196,7 +207,6 @@ other_data <- other_data %>%
 other_data <- other_data %>%
   
   mutate(
-    
     # "Did you find your sessions with Ieso helpful?"
     # Question added after the start date of the study
     # As a result, some participants were asked this question after they had already completed the followup survey
@@ -272,20 +282,20 @@ other_data <- other_data %>%
   )
 
 # Remove redundant variables
-other_data <- other_data %>% 
-  select(participant_id,
-         screening_date,
-         baseline_date,
-         followup_date,
-         starts_with("demographics"), 
-         starts_with("treatment"))
+other_data <- other_data %>%
+  select(
+    participant_id,
+    screening_date,
+    baseline_date,
+    followup_date,
+    starts_with("demographics"),
+    starts_with("treatment")
+  )
 
 # Save data
 saveRDS(other_data,
-        here(
-          "data",
-          "interim",
-          "redcap",
-          "step-02",
-          "redcap-other-data.Rds"
-        ))
+        here("data",
+             "interim",
+             "redcap",
+             "step-02",
+             "other.Rds"))
