@@ -9,7 +9,7 @@ library(janitor) # data cleaning
 # Source function script
 source(file = here("r", "functions.R"))
 
-# Specify the subfolder flare interim data is stored in
+# Specify the subfolder that interim data is stored in
 flare_interim_data_loc <- here("data", "interim", "flare", "step-01")
 
 # Read in dataset
