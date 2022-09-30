@@ -6,35 +6,74 @@ This repository contains materials used to clean and analyse data generated from
 
 # Structure
 
-    ├── .gitignore
-    │
-    ├── .Rprofile
-    │
-    ├── data
-    │   ├── external
-    │   ├── interim
-    │   ├── processed
-    │   └── raw
-    │
-    ├── LICENSE
-    │
-    ├── notebooks
-    │
-    ├── port.Rproj
-    │   
-    ├── r
-    │   └── data_cleaning
-    |
-    ├── README.md
-    |
-    ├── references
-    |
-    ├── renv
-    |
-    ├── renv.lock
-    |
-    └── reports
-        └── figures
+    |-data
+    |---interim
+    |-----flare
+    |-------step-01
+    |-------step-02
+    |-----ieso
+    |-------step-01
+    |-------step-02
+    |-----midapp
+    |-------step-01
+    |-------step-02
+    |-----redcap
+    |-------step-01
+    |-------step-02
+    |---processed
+    |---raw
+    |-----flare
+    |-------PORT-20220505T154512Z
+    |-----ieso
+    |-----midapp
+    |-----redcap
+    |-notebooks
+    |---images
+    |-r
+    |---data_cleaning
+    |-----flare
+    |-----ieso
+    |-----midapp
+    |-----redcap
+    |-references
+    |-renv
+    |---library
+    |-----R-4.2
+    |-------aarch64-apple-darwin20
+    |---------00LOCK-renv
+    |-----------00new
+    |-------------renv
+    |---------------Meta
+    |---------------R
+    |---------------bin
+    |---------------doc
+    |---------------help
+    |-----------------figures
+    |---------------html
+    |---------------repos
+    |-----------------src
+    |-------------------contrib
+    |---------------resources
+    |---------------rstudio
+    |---------renv
+    |-------x86_64-apple-darwin17.0
+    |---------renv
+    |-----------Meta
+    |-----------R
+    |-----------bin
+    |-----------doc
+    |-----------help
+    |-------------figures
+    |-----------html
+    |-----------repos
+    |-------------src
+    |---------------contrib
+    |-----------resources
+    |-----------rstudio
+    |---staging
+    |-reports
+    |---figures
+    |---tables
 
 # Style decisions
 

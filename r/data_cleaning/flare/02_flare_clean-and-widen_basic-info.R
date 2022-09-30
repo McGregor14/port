@@ -5,7 +5,7 @@ rm(list = ls())
 library(tidyverse) # data manipulation
 library(here) # file referencing
 library(janitor) # data cleaning
-library(fedmatch)
+library(fedmatch) # cleaning strings
 
 # Source function script
 source(file = here("r", "functions.R"))
