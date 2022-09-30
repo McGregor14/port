@@ -23,6 +23,8 @@ patient_data <- patient_data_raw %>%
 
 # Clean names
 patient_data <- patient_data %>%
+  # clean_names: makes all names unique, all lower case & only consist of _, 
+  # numbers, and letters
   clean_names()
 
 # Add 'ieso' prefix

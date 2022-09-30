@@ -37,13 +37,17 @@ redcap_data <- redcap_data %>%
 
 # Clean names
 redcap_data <- redcap_data %>%
+  
+  # clean_names: makes all names unique, all lower case & only consist of _, 
+  # numbers, and letters
   clean_names() %>%
   
   # Remove 'scale' from pmh measure to match naming convention of other measures
   rename_with(.fn = ~ str_remove(., "_scale"),
               .cols = starts_with("pmh")) %>%
   
-  # For relevant columns, replace number at the end of strings with the correct wave of data collection
+  # For relevant columns, replace number at the end of strings with the correct
+  # wave of data collection
   rename_with(
     .fn =
       ~ str_replace(., "1$", "screening") %>%

@@ -16,6 +16,8 @@ midapp_interim_data_loc <-
 # Read in dataset
 eacs_data <-
   read_rds(paste0(midapp_interim_data_loc, "/midapp-eacs-data", ".Rds")) %>%
+  # remove_empty: removes empty rows and columns
+  # remove_constant: removes constant columns
   remove_empty(which = c("rows", "cols")) %>%
   remove_constant(na.rm = T, quiet = F)
 

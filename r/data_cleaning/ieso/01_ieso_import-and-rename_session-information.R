@@ -23,6 +23,8 @@ session_data <- session_data_raw %>%
 
 # Clean names
 `ieso-session-data` <- session_data %>%
+  # clean_names: makes all names unique, all lower case & only consist of _, 
+  # numbers, and letters
   clean_names()
 
 # Remove datasets that aren't going to be saved

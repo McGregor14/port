@@ -14,6 +14,10 @@ flare_interim_data_loc <- here("data", "interim", "flare", "step-01")
 
 # Read in dataset and remove empty/redundant columns
 fear_conditioning_raw <- read_rds(paste0(flare_interim_data_loc, "/fear-conditioning-data", ".Rds")) %>% 
+  # clean_names: makes all names unique, all lower case & only consist of _, 
+  # numbers, and letters
+  # remove_empty: removes empty rows and columns
+  # remove_constant: removes constant columns
   clean_names() %>% 
   remove_empty(which = c("rows", "cols")) %>% 
   select(-c(module_type, module_id))
