@@ -44,6 +44,8 @@ This repository contains materials used to clean and analyse data generated from
         ├── figures
         └── tables
 
+File tree created using: <https://tree.nathanfriend.io/>
+
 # Style decisions
 
 -   Use capitalisation in commented code
