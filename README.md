@@ -48,6 +48,8 @@ File tree created using: <https://tree.nathanfriend.io/>
 
 # Style decisions
 
+-   Naming convention for cleaning scripts: \<step\>\_\<origin\>\_\<explanation\>\_\<measure\>
+    -   example: 01_flare_clean_gad
 -   Use capitalisation in commented code
 -   "exp" at the start of all, and only, expectancy rating variables
 
