@@ -22,10 +22,17 @@ session_data <- session_data_raw %>%
   rename(participant_id = port_id)
 
 # Clean names
-`ieso-session-data` <- session_data %>%
+session_data <- session_data %>%
   # clean_names: makes all names unique, all lower case & only consist of _, 
   # numbers, and letters
   clean_names()
+
+# Add 'ieso' prefix
+`ieso-session-data` <- session_data %>% 
+  rename_with(
+    .fn = ~paste0("ieso_", .x), 
+    .cols = -c(row_number, participant_id)
+  )
 
 # Remove datasets that aren't going to be saved
 rm(session_data_raw)

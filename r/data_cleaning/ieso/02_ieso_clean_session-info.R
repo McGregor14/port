@@ -47,45 +47,6 @@ session_data <-
     ~clean_strings(.) 
   ))
 
-
-# ieso_therapist_id
-patient_data <-
-  patient_data %>%
-  mutate(
-    # Convert to factor ordered by the numeric value of the ID
-    ieso_therapist_id = fct_inseq(factor(ieso_therapist_id))
-  )
-
-
-# ieso_pathway
-patient_data <-
-  patient_data %>%
-  mutate(
-    # Tidy the strings
-    ieso_pathway =
-      str_replace_all(ieso_pathway, "\\+", " plus") %>%
-      clean_strings() %>%
-      str_replace_all(., " ", "_"),
-    
-    # Convert to a factor
-    ieso_pathway =
-      factor(ieso_pathway, 
-             levels = c("assessment", "step_2", "step_3", "step_3_plus"))
-  )
-
-# ieso_diagnosis_name, ieso_protocol_token, ieso_discharge_reason
-patient_data <-
-  patient_data %>%
-  mutate(across(
-    .cols = c("ieso_diagnosis_name", 
-              "ieso_protocol_token", 
-              "ieso_discharge_reason"),
-    
-    # Convert all variables to factor 
-    # Order by number of observations in each level
-    ~fct_infreq(factor(.))
-  ))
-
 # Save data
 saveRDS(session_data,
         here("data", "interim", "ieso", "step-02", "session_info.Rds"))
