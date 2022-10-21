@@ -19,11 +19,9 @@ epq_r_n_data <-
   remove_empty(which = c("rows", "cols")) %>%
   remove_constant(na.rm = T, quiet = F)
 
-# TODO: Find out if any items are reverse scored
-
 # Generate derived variables
 epq_r_n_data <- epq_r_n_data %>%
-  mutate(# TODO: EPQ-R-N Scale: ?
+  mutate(
     epq_r_midapp_nscale = rowSums(select(., contains("epq_r_nscale"))))
 
 # Save data

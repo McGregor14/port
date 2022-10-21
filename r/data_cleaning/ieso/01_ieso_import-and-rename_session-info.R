@@ -31,7 +31,7 @@ session_data <- session_data %>%
 `ieso-session-data` <- session_data %>% 
   rename_with(
     .fn = ~paste0("ieso_", .x), 
-    .cols = -c(row_number, participant_id)
+    .cols = -participant_id
   )
 
 # Remove datasets that aren't going to be saved

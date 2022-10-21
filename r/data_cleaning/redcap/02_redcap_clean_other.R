@@ -30,7 +30,8 @@ other_data <- other_data %>%
     
     # Replace 'not completed' with NA for timestamp variables
     # Note: screening has no character observations so is automatically read-in
-    # as a dttm variable, this could break if a character observation is recorded
+    # as a dttm variable, this could break if a character observation is
+    # recorded
     consentmain_timestamp = na_if(consentmain_timestamp, "[not completed]"),
     final_timestamp = na_if(final_timestamp, "[not completed]"),
     
@@ -40,16 +41,19 @@ other_data <- other_data %>%
     followup_date = as_date(final_timestamp),
     
     # Age at screening
-    demographics_age_at_screening = date_of_birth %--% screening_date / years(1),
+    demographics_age_at_screening_years =
+      date_of_birth %--% screening_date / years(1),
     
     # Followup time since therapy
     # Time between last therapy session and the followup survey
-    treatment_followup_time_since_therapy = treatment_finished_date %--% followup_date / days(1),
-    treatment_followup_time_since_therapy = replace(
-      treatment_followup_time_since_therapy,
-      which(treatment_followup_time_since_therapy < 0),
-      NA
-    )
+    treatment_followup_time_since_therapy_days =
+      treatment_finished_date %--% followup_date / days(1),
+    treatment_followup_time_since_therapy_days =
+      replace(
+        treatment_followup_time_since_therapy_days,
+        which(treatment_followup_time_since_therapy_days < 0),
+        NA
+      )
   )
 
 
@@ -85,8 +89,12 @@ other_data <- other_data %>%
         )
       )),
     
-    # Lump together levels with less than 5 observations to avoid identifiable data
-    demographics_gender = fct_lump_min(demographics_gender, min = 5, other_level = "small_n_identifiable")
+    # Lump together levels with less than 5 observations to avoid identifiable
+    # data
+    demographics_gender =
+      fct_lump_min(demographics_gender,
+                   min = 5,
+                   other_level = "small_n_identifiable")
   )
 
 # Employment:
@@ -104,8 +112,10 @@ other_data <- other_data %>%
   mutate(
     tmp_employment_other =
       case_when(
-        str_detect(employment_other, "Disab|disab|Health|health") ~ "unemployed_health_disability",
-        str_detect(employment_other, "Full time") ~ "ft_employed",
+        str_detect(employment_other, "Disab|disab|Health|health")
+        ~ "unemployed_health_disability",
+        str_detect(employment_other, "Full time")
+        ~ "ft_employed",
         TRUE ~ "other"
       ),
     
@@ -138,7 +148,8 @@ other_data <- other_data %>%
         )
       )),
     
-    # Lump together levels with less than 5 observations to avoid identifiable data
+    # Lump together levels with less than 5 observations to avoid identifiable 
+    # data
     demographics_employment = fct_lump_min(
       demographics_employment,
       min = 5,
@@ -162,11 +173,13 @@ other_data <- other_data %>%
     demographics_ethnic_origin =
       fct_infreq(factor(
         case_when(
-          # Specify DK and PNTA first so that responses aren't recorded for those who don't wish them to be
+          # Specify DK and PNTA first so that responses aren't recorded for 
+          # those who don't wish them to be
           ethnic_origin_88 == 1 ~ "dont_know",
           ethnic_origin_99 == 1 ~ "prefer_not_to_answer",
           
-          # Specify mixed and other second so that ethnicity is not oversimplified
+          # Specify mixed and other second so that ethnicity is not 
+          # oversimplified
           ethnic_origin_2 == 1 ~ "mixed",
           ethnic_origin_6 == 1 ~ "other",
           
@@ -190,7 +203,8 @@ other_data <- other_data %>%
         )
       )),
     
-    # Lump together levels with less than 5 observations to avoid identifiable data
+    # Lump together levels with less than 5 observations to avoid identifiable
+    # data
     demographics_ethnic_origin = fct_lump_min(
       demographics_ethnic_origin,
       min = 5,
@@ -208,11 +222,13 @@ other_data <- other_data %>%
   
   mutate(
     # "Did you find your sessions with Ieso helpful?"
-    # Question added after the start date of the study
-    # As a result, some participants were asked this question after they had already completed the followup survey
-    # Responses for those participants are recorded in the sessionhelpful_4_added variable
-    # Use these responses when participants are missing a response for the main variable iesohelpful_4
-    # This will prioritise their initial response if they happened to be asked the same question twice
+    # Question added after the start date of the study.
+    # As a result, some participants were asked this question after they had 
+    # already completed the followup survey. Responses for those participants 
+    # are recorded in the sessionhelpful_4_added variable. Use these responses 
+    # when participants are missing a response for the main variable 
+    # iesohelpful_4. This will prioritise their initial response if they 
+    # happened to be asked the same question twice.
     treatment_followup_treatment_helpful =
       if_else(
         condition = is.na(iesohelpful_4),
