@@ -441,6 +441,19 @@ session_treatments_scores <-
   ungroup()
 
 
+
+#### Final treatment scores -----------------------------------------------
+final_treatment_scores <- 
+  session_treatments_scores %>% 
+  group_by(participant_id) %>% 
+  filter(treatment_number== max(treatment_number)) %>% 
+  select(-treatment_number) %>% 
+  rename_with(
+    .fn = ~paste0(., "_final"),
+    .cols = -participant_id
+  )
+
+
 #### Reorder variables ----------------------------------------------------
 
 session_treatments_scores <-
@@ -448,6 +461,16 @@ session_treatments_scores <-
   select(
     participant_id,
     treatment_number,
+    starts_with("gad7"),
+    starts_with("phq9"),
+    starts_with("wsas"),
+    everything()
+  )
+
+final_treatment_scores <-
+  final_treatment_scores %>%
+  select(
+    participant_id,
     starts_with("gad7"),
     starts_with("phq9"),
     starts_with("wsas"),
@@ -464,7 +487,6 @@ session_treatments_scores <-
   pivot_wider(names_from = treatment_number,
               values_from = -c(participant_id, treatment_number))
 
-
 # Merge wide datasets -----------------------------------------------------
 
 # Create a list of datasets to merge
@@ -473,7 +495,8 @@ session_data_list <- list(
   session_assessment_date,
   session_treatment_dates,
   session_assessment_scores,
-  session_treatments_scores
+  session_treatments_scores,
+  final_treatment_scores
 )
 
 # Merge all elements of the list

@@ -1,0 +1,95 @@
+---
+title: "PORT: preliminary analyses"
+author: "Thomas McGregor"
+date: "`r Sys.Date()`"
+output: html_document
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "../reports"
+    )
+  })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r load packages, include=FALSE}
+library(ppcor) # partial correlations
+library(tidyverse) # data manipulation
+library(here) # file referencing
+library(ComplexUpset) # creating upset plots
+library(gt) # creating tables
+library(webshot) # required for saving gt tables
+
+```
+
+```{r read in dataset, include=FALSE}
+port_data <- read_rds(here("data", "processed", "full-processed-data.Rds"))
+```
+
+# Cleaning
+
+```{r}
+port_data_subsetted <- port_data %>% 
+  select(
+    participant_id,
+    demographics_gender,
+    gad7_treatment_total_final,
+    exp_acq_cs_minus_mean,
+    exp_ext_cs_plus_mean,
+    gad7_treatment_total_1,
+    ieso_treatment_completed_n,
+    ieso_treatment_completed_late_n
+  )
+
+port_data_subsetted <- port_data_subsetted %>%
+  mutate(ieso_treatment_completed_total = 
+           rowSums(select(., contains("ieso_treatment_completed")), na.rm = TRUE)
+  ) %>% 
+  select(-c(ieso_treatment_completed_n, ieso_treatment_completed_late_n)) %>% 
+  filter(ieso_treatment_completed_total >= 2)
+
+port_data_subsetted_clean <- na.omit(port_data_subsetted)
+```
+
+# Analyses
+
+## ACQ CS-
+
+```{r}
+acq_cs_minus_model <- port_data_subsetted %>% 
+  lm(gad7_treatment_total_final ~ exp_acq_cs_minus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total, data = .)
+
+pcor.test(port_data_subsetted_clean$gad7_treatment_total_final,
+          port_data_subsetted_clean$exp_acq_cs_minus_mean,
+          port_data_subsetted_clean$gad7_treatment_total_1,
+          method="pearson")
+
+summary(acq_cs_minus_model)
+
+port_data_subsetted %>% 
+  ggplot(aes(x = exp_acq_cs_minus_mean, y = gad7_treatment_total_final)) +
+  geom_point() + 
+  geom_smooth(method=lm)
+```
+
+## EXT CS+
+
+```{r}
+ext_cs_plus_model <- port_data_subsetted %>% 
+  lm(gad7_treatment_total_final ~ exp_ext_cs_plus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total, data = .)
+
+pcor.test(port_data_subsetted_clean$gad7_treatment_total_final,
+          port_data_subsetted_clean$exp_ext_cs_plus_mean,
+          port_data_subsetted_clean$gad7_treatment_total_1,
+          method="pearson")
+
+summary(ext_cs_plus_model)
+
+port_data_subsetted %>% 
+  ggplot(aes(x = exp_ext_cs_plus_mean, y = gad7_treatment_total_final)) +
+  geom_point() + 
+  geom_smooth(method=lm)
+```
