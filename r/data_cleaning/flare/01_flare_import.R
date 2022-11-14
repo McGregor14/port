@@ -39,7 +39,7 @@ names(flare_data_list) <- flare_data_names
 flare_data_list <- keep(flare_data_list, ~ nrow(.x) > 0)
 
 # Remove the 'completed participants' dataframe
-flare_data_list <-  flare_data_list[names(flare_data_list) != "completed_participant_ids"]
+flare_data_list <-  flare_data_list[names(flare_data_list) != "completed-participant-ids"]
 
 # Print a message giving the names of modules with no data
 empty_modules <- flare_data_names[which(flare_data_names %!in% names(flare_data_list))]

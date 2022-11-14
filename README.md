@@ -53,6 +53,10 @@ File tree created using: <https://tree.nathanfriend.io/>
 -   Use capitalisation in commented code
 -   "exp" at the start of all, and only, expectancy rating variables
 
+# Notes
+
+-   1 participant is missing assessment data
+
 # License
 
 This project is licensed under the terms of the [MIT License](https://github.com/McGregor14/port/blob/main/LICENSE).

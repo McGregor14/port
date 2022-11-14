@@ -29,7 +29,6 @@ fear_conditioning <- fear_conditioning_raw %>%
   mutate(normalised_stimulus = recode(normalised_stimulus, `cs+` = "cs_plus", `cs-` = "cs_minus"))
 
 
-
 # EXPECTANCY RATINGS
 
 # Save the preferred order of expectancy variables
@@ -122,6 +121,60 @@ expectancy_ratings_wide <- fear_conditioning %>%
   pivot_wider(names_from = variable, values_from = rating)
 
 # Generate derived variables
+
+expectancy_ratings_wide <-
+  expectancy_ratings_wide %>%
+  mutate(
+    exp_acquisition_cs_plus_mean =
+      rowMeans(select(., contains(
+        c("acquisition", "plus")
+      ))),
+    exp_acquisition_cs_minus_mean =
+      rowMeans(select(., contains(
+        c("acquisition", "minus")
+      ))),
+    exp_acquisition_cs_plus_differential =
+      exp_acquisition_cs_plus_mean - exp_acquisition_cs_minus_mean,
+    exp_extinction_cs_plus_mean =
+      rowMeans(select(., contains(
+        c("extinction", "plus")
+      ))),
+    exp_extinction_cs_minus_mean =
+      rowMeans(select(., contains(
+        c("extinction", "minus")
+      ))),
+    exp_extinction_cs_plus_differential =
+      exp_extinction_cs_plus_mean - exp_extinction_cs_minus_mean,
+    
+    
+    
+  )
+
+# Create dataframe with mean expectancy ratings per phase
+expectancy_ratings_wide <- fear_conditioning %>%
+  select(participant_id,
+         phase,
+         normalised_stimulus,
+         trial_by_stimulus,
+         rating) %>%
+  arrange(participant_id, phase, normalised_stimulus, trial_by_stimulus) %>%
+  group_by(participant_id, phase, normalised_stimulus) %>%
+  mutate(mean = mean(rating)) %>%
+  select(participant_id,
+         phase,
+         normalised_stimulus,
+         mean) %>%
+  distinct() %>%
+  pivot_wider(
+    names_from = c("phase", "normalised_stimulus"),
+    values_from = mean,
+    names_glue = "exp_{phase}_{normalised_stimulus}_mean"
+  ) %>%
+  rename_with(.fn = ~ str_replace_all(., c(
+    "acquisition" = "acq", "extinction" = "ext"
+  )),
+  .cols = -participant_id) %>%
+  right_join(expectancy_ratings_wide, by = "participant_id")
 
 # Create dataframe with missed trials info
 number_missing_ratings <- expectancy_ratings_wide %>%
@@ -278,42 +331,16 @@ app_exits_info <- fear_conditioning %>%
     iti_exits_total, trial_exits_total
   )), na.rm = T))
 
-# Create dataframe with mean expectancy ratings per phase
-expectancy_ratings_wide <- fear_conditioning %>%
-  select(participant_id,
-         phase,
-         normalised_stimulus,
-         trial_by_stimulus,
-         rating) %>%
-  arrange(participant_id, phase, normalised_stimulus, trial_by_stimulus) %>%
-  group_by(participant_id, phase, normalised_stimulus) %>%
-  mutate(mean = mean(rating)) %>%
-  select(participant_id,
-         phase,
-         normalised_stimulus,
-         mean) %>%
-  distinct() %>%
-  pivot_wider(
-    names_from = c("phase", "normalised_stimulus"),
-    values_from = mean,
-    names_glue = "exp_{phase}_{normalised_stimulus}_mean"
-  ) %>%
-  rename_with(.fn = ~ str_replace_all(., c(
-    "acquisition" = "acq", "extinction" = "ext"
-  )),
-  .cols = -participant_id) %>%
-  right_join(expectancy_ratings_wide, by = "participant_id")
-  
-  
-  # Use long expectancy ratings data to impute missing ratings for participants with < 6 missed trials per phase
-  # Expectancy ratings will be imputed for participants missing data up to five out of 24 (acquisition) or 36 (extinction) trials per phase, as follows:
-  # If a participant misses the first trial of a fear conditioning phase, the sample average of that trial will be imputed.
-  # If a participant misses the final trial of a fear conditioning phase, their last rating will be carried forward for the trial.
-  # All other fear conditioning trials where the participant misses an expectancy rating will be imputed using the mean of the participant’s last rating made before, and first rating made after, the trial.
-  # expectancy_ratings_long <- fear_conditioning %>%
-  #   select(participant_id, phase, normalised_stimulus, trial, trial_by_stimulus, rating) %>%
-  #   arrange(participant_id, phase, trial) %>%
-  #   group_by(participant_id, phase) %>%
+
+# Use long expectancy ratings data to impute missing ratings for participants with < 6 missed trials per phase
+# Expectancy ratings will be imputed for participants missing data up to five out of 24 (acquisition) or 36 (extinction) trials per phase, as follows:
+# If a participant misses the first trial of a fear conditioning phase, the sample average of that trial will be imputed.
+# If a participant misses the final trial of a fear conditioning phase, their last rating will be carried forward for the trial.
+# All other fear conditioning trials where the participant misses an expectancy rating will be imputed using the mean of the participant’s last rating made before, and first rating made after, the trial.
+# expectancy_ratings_long <- fear_conditioning %>%
+#   select(participant_id, phase, normalised_stimulus, trial, trial_by_stimulus, rating) %>%
+#   arrange(participant_id, phase, trial) %>%
+#   group_by(participant_id, phase) %>%
 #   mutate(no_missed_ratings = sum(is.na(rating))) %>%
 #   ungroup() %>%
 #   group_by(phase) %>%
