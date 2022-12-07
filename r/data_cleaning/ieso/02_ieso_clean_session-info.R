@@ -66,7 +66,7 @@ session_data_long <- session_data
 ## Session counts ---------------------------------------------------------
 
 # Create an object containing the number of sessions for each type of
-# appointment and whether they attended etc, to be merged with other wide 
+# appointment and whether they attended etc, to be merged with other wide
 # datasets at a later point.
 
 session_counts <-
@@ -443,15 +443,13 @@ session_treatments_scores <-
 
 
 #### Final treatment scores -----------------------------------------------
-final_treatment_scores <- 
-  session_treatments_scores %>% 
-  group_by(participant_id) %>% 
-  filter(treatment_number== max(treatment_number)) %>% 
-  select(-treatment_number) %>% 
-  rename_with(
-    .fn = ~paste0(., "_final"),
-    .cols = -participant_id
-  )
+final_treatment_scores <-
+  session_treatments_scores %>%
+  group_by(participant_id) %>%
+  filter(treatment_number == max(treatment_number)) %>%
+  select(-treatment_number) %>%
+  rename_with(.fn = ~ paste0(., "_final"),
+              .cols = -participant_id)
 
 
 #### Reorder variables ----------------------------------------------------
@@ -480,7 +478,7 @@ final_treatment_scores <-
 
 #### Widen treatment scores -----------------------------------------------
 
-# Widen treatment scores for each participant, to be merged with other wide 
+# Widen treatment scores for each participant, to be merged with other wide
 # datasets at a later point
 session_treatments_scores <-
   session_treatments_scores %>%
@@ -511,7 +509,5 @@ saveRDS(session_data,
         here("data", "interim", "ieso", "step-02", "session_info.Rds"))
 
 # Save long dataset
-saveRDS(
-  session_data_long,
-  here("data", "processed", "treatment_data_long.Rds")
-)
+saveRDS(session_data_long,
+        here("data", "processed", "treatment_data_long.Rds"))

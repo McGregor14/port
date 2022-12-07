@@ -11,27 +11,36 @@ library(lubridate) # working with dates/times
 source(file = here("r", "functions.R"))
 
 # Specify the subfolder that interim data is stored in
-flare_interim_data_loc <- here("data", "interim", "flare", "step-01")
+flare_interim_data_loc <-
+  here("data", "interim", "flare", "step-01")
 
 # Read in dataset
-participants_raw <- read_rds(paste0(flare_interim_data_loc, "/participants", ".Rds")) %>% 
-  # clean_names: makes all names unique, all lower case & only consist of _, 
+participants_raw <-
+  read_rds(paste0(flare_interim_data_loc, "/participants", ".Rds")) %>%
+  # clean_names: makes all names unique, all lower case & only consist of _,
   # numbers, and letters
+  clean_names() %>%
   # remove_empty: removes empty rows and columns
+  remove_empty(which = c("rows", "cols")) %>%
   # remove_constant: removes constant columns
-  clean_names() %>% 
-  remove_empty(which = c("rows", "cols")) %>% 
   remove_constant(na.rm = T, quiet = F)
 
 # Clean dataset
-participants <- participants_raw %>% 
+participants <- participants_raw %>%
   select(-voucher) %>% # Remove redundant voucher column
-  mutate(across(.cols = c(current_module, reinforced_stimulus), .fns = ~str_to_lower(str_replace_all(., " ", "_")))) %>%
-  mutate(across(.cols = c(current_module, reinforced_stimulus), .fns = ~ fct_infreq(as_factor(.)))) %>% 
-  rename_with(.fn = ~paste0("flare_", .x), .cols = !participant_id) # Add 'flare' as a prefix to all columns except the participant_id column
+  mutate(across(
+    .cols = c(current_module, reinforced_stimulus),
+    .fns = ~ str_to_lower(str_replace_all(., " ", "_"))
+  )) %>%
+  mutate(across(
+    .cols = c(current_module, reinforced_stimulus),
+    .fns = ~ fct_infreq(as_factor(.))
+  )) %>%
+  rename_with(.fn = ~ paste0("flare_", .x),
+              .cols = -participant_id) # Add 'flare' as a prefix to all columns
 
 # Generate derived variables
-participants <- participants %>% 
+participants <- participants %>%
   mutate(
     flare_created_date = date(flare_created_at),
     flare_created_hour = hour(flare_created_at),
@@ -42,7 +51,9 @@ participants <- participants %>%
     flare_finished_date = date(flare_finished_at),
     flare_finished_hour = hour(flare_finished_at),
     
-    flare_completion_duration_mins = as.double(difftime(flare_finished_at, flare_started_at, units = "mins")),
+    flare_completion_duration_mins = as.double(difftime(
+      flare_finished_at, flare_started_at, units = "mins"
+    )),
     
     flare_batch_no = as.integer(factor(flare_created_at)),
     
@@ -60,4 +71,5 @@ participants <- participants %>%
   )
 
 # Save data
-saveRDS(participants, here("data", "interim", "flare", "step-02", "participants.Rds"))
+saveRDS(participants,
+        here("data", "interim", "flare", "step-02", "participants.Rds"))

@@ -13,12 +13,12 @@ flare_data_path <- (here("data", "interim", "flare", "step-02"))
 flare_rds_files <- dir_ls(flare_data_path, regexp = "\\.Rds$")
 
 # Read in all RDS files stored in the folder
-flare_data_list <- flare_rds_files %>% 
-  map(~read_rds(.))
+flare_data_list <- flare_rds_files %>%
+  map(~ read_rds(.))
 
 # Remove the pathname, duplicate prefix, and filetype from the names of the list elements
 flare_data_names <- flare_data_list %>%
-  names() %>% 
+  names() %>%
   str_remove_all(., paste0(flare_data_path, "/")) %>%
   str_remove(., ".Rds")
 
@@ -26,17 +26,20 @@ flare_data_names <- flare_data_list %>%
 names(flare_data_list) <- flare_data_names
 
 # Reorder the list ready for merging
-flare_data_list <- flare_data_list[c("participants",
-                                     "basic-info", 
-                                     "affective-ratings", 
-                                     "fear-conditioning", 
-                                     "contingency-awareness", 
-                                     "us-unpleasantness", 
-                                     "post-experiment-questions")]
+flare_data_list <- flare_data_list[c(
+  "participants",
+  "basic-info",
+  "affective-ratings",
+  "fear-conditioning",
+  "contingency-awareness",
+  "us-unpleasantness",
+  "post-experiment-questions"
+)]
 
 # Merge all elements of the list
-flare_data <- flare_data_list %>% 
+flare_data <- flare_data_list %>%
   reduce(full_join, by = "participant_id")
 
 # Save data
-saveRDS(flare_data, here("data", "processed", "flare-data.Rds"))
+saveRDS(flare_data,
+        here("data", "interim", "flare", "step-03", "flare-data.Rds"))
