@@ -22,74 +22,96 @@ library(here) # file referencing
 library(ComplexUpset) # creating upset plots
 library(gt) # creating tables
 library(webshot) # required for saving gt tables
+library(naniar)
 
 ```
 
 ```{r read in dataset, include=FALSE}
-port_data <- read_rds(here("data", "processed", "full-processed-data.Rds"))
+port_data <- read_rds(here("data", "processed", "07_imputed-processed-data.Rds"))
 ```
 
 # Cleaning
 
 ```{r}
 port_data_subsetted <- port_data %>% 
-  select(
-    participant_id,
-    demographics_gender,
+  filter(port_exclusion == FALSE) %>% 
+  dplyr::select(
     gad7_treatment_total_final,
-    exp_acq_cs_minus_mean,
-    exp_ext_cs_plus_mean,
+    gad7_treatment_total_final_observed,
+    exp_acquisition_cs_minus_mean,
+    exp_extinction_cs_plus_mean,
     gad7_treatment_total_1,
-    ieso_treatment_completed_n,
-    ieso_treatment_completed_late_n
-  )
-
-port_data_subsetted <- port_data_subsetted %>%
-  mutate(ieso_treatment_completed_total = 
-           rowSums(select(., contains("ieso_treatment_completed")), na.rm = TRUE)
-  ) %>% 
-  select(-c(ieso_treatment_completed_n, ieso_treatment_completed_late_n)) %>% 
-  filter(ieso_treatment_completed_total >= 2)
+    ieso_treatment_completed_total,
+    fss_baseline_total,
+    fss_followup_total)
 
 port_data_subsetted_clean <- na.omit(port_data_subsetted)
+
+
+vis_miss(port_data_subsetted)
 ```
 
 # Analyses
 
-## ACQ CS-
+## Acquisition CS-
 
 ```{r}
-acq_cs_minus_model <- port_data_subsetted %>% 
-  lm(gad7_treatment_total_final ~ exp_acq_cs_minus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total, data = .)
+acquisition_cs_minus_model <- port_data_subsetted %>% 
+  lm(
+    gad7_treatment_total_final_observed ~ exp_acquisition_cs_minus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total, 
+    data = .
+  )
 
-pcor.test(port_data_subsetted_clean$gad7_treatment_total_final,
-          port_data_subsetted_clean$exp_acq_cs_minus_mean,
-          port_data_subsetted_clean$gad7_treatment_total_1,
-          method="pearson")
+pcor.test(
+  port_data_subsetted_clean$gad7_treatment_total_final_observed,
+  port_data_subsetted_clean$exp_acquisition_cs_minus_mean,
+  port_data_subsetted_clean$gad7_treatment_total_1,
+  method="pearson"
+)
 
-summary(acq_cs_minus_model)
+summary(acquisition_cs_minus_model)
 
 port_data_subsetted %>% 
-  ggplot(aes(x = exp_acq_cs_minus_mean, y = gad7_treatment_total_final)) +
+  ggplot(aes(x = exp_acquisition_cs_minus_mean, y = gad7_treatment_total_final_observed)) +
   geom_point() + 
   geom_smooth(method=lm)
 ```
 
-## EXT CS+
+## Extinction CS+
 
 ```{r}
-ext_cs_plus_model <- port_data_subsetted %>% 
-  lm(gad7_treatment_total_final ~ exp_ext_cs_plus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total, data = .)
+extinction_cs_plus_model <- port_data_subsetted %>% 
+  lm(gad7_treatment_total_final_observed ~ exp_extinction_cs_plus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total, data = .)
 
-pcor.test(port_data_subsetted_clean$gad7_treatment_total_final,
-          port_data_subsetted_clean$exp_ext_cs_plus_mean,
+pcor.test(port_data_subsetted_clean$gad7_treatment_total_final_observed,
+          port_data_subsetted_clean$exp_extinction_cs_plus_mean,
           port_data_subsetted_clean$gad7_treatment_total_1,
           method="pearson")
 
-summary(ext_cs_plus_model)
+summary(extinction_cs_plus_model)
 
 port_data_subsetted %>% 
-  ggplot(aes(x = exp_ext_cs_plus_mean, y = gad7_treatment_total_final)) +
+  ggplot(aes(x = exp_extinction_cs_plus_mean, y = gad7_treatment_total_final_observed)) +
+  geom_point() + 
+  geom_smooth(method=lm)
+```
+
+
+## FSS
+
+```{r}
+fss_model <- port_data_subsetted %>% 
+  lm(fss_followup_total ~ exp_extinction_cs_plus_mean + fss_baseline_total + ieso_treatment_completed_total, data = .)
+
+pcor.test(port_data_subsetted_clean$fss_followup_total,
+          port_data_subsetted_clean$exp_extinction_cs_plus_mean,
+          port_data_subsetted_clean$fss_baseline_total,
+          method="pearson")
+
+summary(fss_model)
+
+port_data_subsetted %>% 
+  ggplot(aes(x = exp_extinction_cs_plus_mean, y = fss_followup_total)) +
   geom_point() + 
   geom_smooth(method=lm)
 ```

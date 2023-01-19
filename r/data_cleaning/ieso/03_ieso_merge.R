@@ -34,4 +34,4 @@ ieso_data <- ieso_data_list %>%
   reduce(full_join, by = "participant_id")
 
 # Save data
-saveRDS(ieso_data, here("data", "processed", "ieso-data.Rds"))
+saveRDS(ieso_data, here("data", "interim", "ieso", "step-03", "ieso-data.Rds"))

@@ -1,0 +1,123 @@
+---
+title: "PORT: heat maps"
+author: "Thomas McGregor"
+date: "`r Sys.Date()`"
+output: html_document
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "../reports"
+    )
+  })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+rm(list = ls())
+```
+
+```{r load packages, include=FALSE}
+library(corrr) # creating correlation matrices & heatmaps
+library(gt) # creating tables
+library(here) # file referencing
+library(tidyverse) # data manipulation
+```
+
+```{r read in dataset, include=FALSE}
+port_data <- read_rds(here("data", "processed", "06_clean-processed-data.Rds"))
+port_data_imputed <- read_rds(here("data", "processed", "07_imputed-processed-data.Rds"))
+```
+
+# Heat maps
+
+```{r}
+# Subset dataframe
+baseline_measures <- 
+  port_data %>% 
+  select(
+    asi_baseline_total,
+    cbas_baseline_behavioural_social,
+    cbas_baseline_behavioural_nonsocial,
+    cbas_baseline_cognitive_social,
+    cbas_baseline_cognitive_nonsocial,
+    fss_baseline_total,
+    fss_baseline_soc,
+    fss_baseline_ago,
+    fss_baseline_inj,
+    fss_baseline_sex,
+    gad7_baseline_total,
+    gad7_treatment_change,
+    gad7_treatment_change_observed,
+    phq9_baseline_total,
+    pmh_baseline_mean,
+    pswq_baseline_total,
+    stai_baseline_trait_total,
+    wsas_baseline_total,
+    bis_midapp_total,
+    bas_midapp_drive,
+    bas_midapp_fun_seeking,
+    bas_midapp_reward_responsiveness,
+    eacs_midapp_total,
+    epq_r_midapp_nscale,
+    ius12_midapp_total,
+    ius12_midapp_prospective_anxiety,
+    ius12_midapp_inhibitory_anxiety,
+    exp_acquisition_cs_plus_mean,
+    exp_acquisition_cs_minus_mean,
+    exp_extinction_cs_plus_mean,
+    exp_extinction_cs_minus_mean
+  ) 
+
+baseline_measures %>% 
+  correlate() %>%
+  autoplot(triangular = "lower") +
+  geom_text(aes(label=round(r, digits=2)), size=4)
+
+ggsave(here("reports", "figures", "baseline-heat-map.pdf"), width = 45, height = 35, units = "cm")
+```
+```{r}
+# Subset dataframe
+baseline_measures <- 
+  port_data_imputed %>% 
+  select(
+    asi_baseline_total,
+    cbas_baseline_behavioural_social,
+    cbas_baseline_behavioural_nonsocial,
+    cbas_baseline_cognitive_social,
+    cbas_baseline_cognitive_nonsocial,
+    fss_baseline_total,
+    fss_baseline_soc,
+    fss_baseline_ago,
+    fss_baseline_inj,
+    fss_baseline_sex,
+    gad7_baseline_total,
+    gad7_treatment_change,
+    gad7_treatment_change_observed,
+    phq9_baseline_total,
+    pmh_baseline_mean,
+    pswq_baseline_total,
+    stai_baseline_trait_total,
+    wsas_baseline_total,
+    bis_midapp_total,
+    bas_midapp_drive,
+    bas_midapp_fun_seeking,
+    bas_midapp_reward_responsiveness,
+    eacs_midapp_total,
+    epq_r_midapp_nscale,
+    ius12_midapp_total,
+    ius12_midapp_prospective_anxiety,
+    ius12_midapp_inhibitory_anxiety,
+    exp_acquisition_cs_plus_mean,
+    exp_acquisition_cs_minus_mean,
+    exp_extinction_cs_plus_mean,
+    exp_extinction_cs_minus_mean
+  ) 
+
+baseline_measures %>% 
+  correlate() %>%
+  autoplot(triangular = "lower") +
+  geom_text(aes(label=round(r, digits=2)), size=4)
+
+ggsave(here("reports", "figures", "baseline-heat-map_imputed.pdf"), width = 45, height = 35, units = "cm")
+```

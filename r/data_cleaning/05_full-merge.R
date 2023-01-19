@@ -54,4 +54,4 @@ processed_data <- processed_data %>%
 
 # Save data
 saveRDS(processed_data,
-        here("data", "processed", "full-processed-data.Rds"))
+        here("data", "processed", "05_merged-processed-data.Rds"))

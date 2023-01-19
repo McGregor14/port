@@ -77,6 +77,7 @@ session_counts <-
   group_by(participant_id, ieso_appointment_type, ieso_status) %>%
   count() %>%
   ungroup() %>%
+  arrange(participant_id, ieso_appointment_type, ieso_status) %>%
   
   # Widen the dataset so that each column represents a type of appointment
   # and whether or not the participant attended, dna'd etc
@@ -110,6 +111,21 @@ session_counts <-
   rename_with(.fn = ~ paste0("ieso_", .x, "_n"),
               .cols = -participant_id)
 
+# Add completed/incomplete totals for session counts
+session_counts <-
+  session_counts %>%
+  mutate(
+    ieso_assessment_completed_total =
+      ieso_assessment_completed_n + ieso_assessment_completed_late_n,
+    ieso_assessment_incomplete_total =
+      ieso_assessment_aborted_n + ieso_assessment_dna_n,
+    ieso_treatment_completed_total =
+      ieso_treatment_completed_n + ieso_treatment_completed_late_n,
+    ieso_treatment_incomplete_total =
+      ieso_treatment_aborted_n + ieso_treatment_dna_n +
+      ieso_treatment_cancelled_late_n + ieso_treatment_agent_cancelled_n
+  )
+
 
 ## Assessment data ---------------------------------------------------------
 
@@ -129,15 +145,15 @@ session_data_assessments <-
   ungroup()
 
 
-### ieso_assessment_date --------------------------------------------------
+### ieso_assessment_dttm --------------------------------------------------
 
 # Create an object containing the dates for each participant's assessment, to
 # be merged with other wide datasets at a later point
 
-session_assessment_date <-
+session_assessment_dttm <-
   session_data_assessments %>%
   select(participant_id,
-         ieso_assessment_date = ieso_date)
+         ieso_assessment_dttm = ieso_date)
 
 ### Assessment scores -----------------------------------------------------
 
@@ -272,21 +288,26 @@ session_assessment_scores <-
 session_data_treatments <-
   session_data %>%
   
-  # Filter out sessions that aren't treatment
-  filter(ieso_appointment_type == "treatment") %>%
+  # Filter out sessions that aren't treatment or completed sessions
+  filter(
+    ieso_appointment_type == "treatment",
+    ieso_status == "completed" |
+      ieso_status == "completed_late"
+  ) %>%
   
-  # Sort the dataset by participant and ID
+  # Sort the dataset by participant and date
   group_by(participant_id) %>%
   arrange(participant_id, ieso_date, by_group = TRUE) %>%
-  
-  # Only include completed sessions
-  filter(ieso_status == "completed" |
-           ieso_status == "completed_late") %>%
   
   # Add session number
   mutate(treatment_number = row_number()) %>%
   ungroup() %>%
-  select(participant_id, treatment_number, everything())
+  
+  # Reorder variables
+  select(participant_id,
+         treatment_number,
+         ieso_date,
+         everything())
 
 
 ### ieso_treatment_dates ---------------------------------------------
@@ -302,7 +323,7 @@ session_treatment_dates <-
            treatment_number == max(treatment_number)) %>%
   
   # Order the dataset so that for each participant their first and last
-  # Treatment are listed and remove redundant columns
+  # treatment are listed and remove redundant columns
   arrange(treatment_number, .by_group = TRUE) %>%
   select(participant_id,
          treatment_number,
@@ -320,7 +341,13 @@ session_treatment_dates <-
   # Remove treatment number and spread dates so that they appear below first/
   # last variables (i.e. widen dataset)
   select(-treatment_number) %>%
-  pivot_wider(names_from = "treatment", values_from = "ieso_date")
+  pivot_wider(names_from = "treatment", values_from = "ieso_date") %>%
+  
+  # Convert dttm to dates
+  mutate(
+    ieso_first_treatment_date = as_date(ieso_first_treatment_date),
+    ieso_last_treatment_date = as_date(ieso_last_treatment_date)
+  )
 
 
 ### Treatment scores ------------------------------------------------------
@@ -452,6 +479,42 @@ final_treatment_scores <-
               .cols = -participant_id)
 
 
+#### Final observed treatment scores --------------------------------------
+
+# Last observed (non-NA value) score bought forward
+final_observed_treatment_scores <-
+  session_treatments_scores %>%
+  group_by(participant_id) %>%
+  mutate(across(
+    .cols = c(
+      phq9_treatment_total,
+      gad7_treatment_total,
+      wsas_treatment_total,
+      ocd_treatment_total,
+      social_phobia_inventory_treatment_total,
+      hain_treatment_total,
+      pcl5_treatment_total,
+      gad7_treatment_severity,
+      gad7_treatment_binary_anxiety,
+      gad7_treatment_iapt_anxiety,
+      phq9_treatment_severity,
+      phq9_treatment_binary_depression,
+      wsas_treatment_impairment
+    ),
+    .fns = ~ if_else(
+      condition =
+        treatment_number == max(treatment_number, na.rm = TRUE) &
+        is.na(.x),
+      true = last(na.omit(.x)),
+      false = .x
+    ),
+    .names = "{col}_final_observed"
+  )) %>%
+  filter(treatment_number == max(treatment_number, na.rm = TRUE)) %>% 
+  select(participant_id, ends_with("final_observed")) %>% 
+  ungroup()
+
+
 #### Reorder variables ----------------------------------------------------
 
 session_treatments_scores <-
@@ -475,6 +538,16 @@ final_treatment_scores <-
     everything()
   )
 
+final_observed_treatment_scores <- 
+  final_observed_treatment_scores %>% 
+  select(
+    participant_id,
+    starts_with("gad7"),
+    starts_with("phq9"),
+    starts_with("wsas"),
+    everything()
+  )
+
 
 #### Widen treatment scores -----------------------------------------------
 
@@ -490,11 +563,12 @@ session_treatments_scores <-
 # Create a list of datasets to merge
 session_data_list <- list(
   session_counts,
-  session_assessment_date,
+  session_assessment_dttm,
   session_treatment_dates,
   session_assessment_scores,
   session_treatments_scores,
-  final_treatment_scores
+  final_treatment_scores,
+  final_observed_treatment_scores
 )
 
 # Merge all elements of the list
