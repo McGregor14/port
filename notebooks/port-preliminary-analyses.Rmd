@@ -24,6 +24,7 @@ library(gt) # creating tables
 library(here) # file referencing
 library(naniar) # visualise missing data
 library(ppcor) # partial correlations
+library(summarytools) # data exploration
 library(tidyverse) # data manipulation
 library(webshot) # required for saving gt tables
 ```
@@ -78,12 +79,15 @@ port_data_exclusions_applied %>%
 port_data_subsetted <- port_data %>% 
   filter(port_exclusion == FALSE) %>% 
   dplyr::select(
+    ieso_treatment_completed_total,
+    demographics_age_at_screening,
+    demographics_biological_sex,
+    gad7_treatment_total_1,
     gad7_treatment_total_final,
     gad7_treatment_total_final_observed,
+    gad7_followup_total,
     exp_acquisition_cs_minus_mean,
     exp_extinction_cs_plus_mean,
-    gad7_treatment_total_1,
-    ieso_treatment_completed_total,
     fss_baseline_total,
     fss_followup_total)
 
@@ -97,11 +101,16 @@ vis_miss()
 ```
 
 ## Skew & kurtosis
+```{r}
+descr(port_data_subsetted)
+```
 
 
 # Analyses
 
-## Acquisition CS-
+## Primary - GAD-7 at last session
+
+### Acquisition CS-
 
 ```{r}
 acquisition_cs_minus_model <- port_data_subsetted %>% 
@@ -110,6 +119,8 @@ acquisition_cs_minus_model <- port_data_subsetted %>%
     data = .
   )
 
+summary(acquisition_cs_minus_model)
+
 pcor.test(
   port_data_subsetted_complete_cases$gad7_treatment_total_final_observed,
   port_data_subsetted_complete_cases$exp_acquisition_cs_minus_mean,
@@ -117,26 +128,26 @@ pcor.test(
   method="pearson"
 )
 
-summary(acquisition_cs_minus_model)
-
 port_data_subsetted %>% 
   ggplot(aes(x = exp_acquisition_cs_minus_mean, y = gad7_treatment_total_final_observed)) +
   geom_point() + 
   geom_smooth(method=lm)
+
+acquisition_cs_minus_model$coefficients
 ```
 
-## Extinction CS+
+### Extinction CS+
 
 ```{r}
 extinction_cs_plus_model <- port_data_subsetted %>% 
   lm(gad7_treatment_total_final_observed ~ exp_extinction_cs_plus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total, data = .)
 
+summary(extinction_cs_plus_model)
+
 pcor.test(port_data_subsetted_complete_cases$gad7_treatment_total_final_observed,
           port_data_subsetted_complete_cases$exp_extinction_cs_plus_mean,
           port_data_subsetted_complete_cases$gad7_treatment_total_1,
           method="pearson")
-
-summary(extinction_cs_plus_model)
 
 port_data_subsetted %>% 
   ggplot(aes(x = exp_extinction_cs_plus_mean, y = gad7_treatment_total_final_observed)) +
@@ -144,19 +155,112 @@ port_data_subsetted %>%
   geom_smooth(method=lm)
 ```
 
+## Secondary
 
-## FSS
+### Age/Sex adjustment
+
+#### Acquisition CS-
+
+```{r}
+acquisition_cs_minus_model <- port_data_subsetted %>% 
+  lm(
+    gad7_treatment_total_final_observed ~ exp_acquisition_cs_minus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total + demographics_age_at_screening +
+    demographics_biological_sex, 
+    data = .
+  )
+
+summary(acquisition_cs_minus_model)
+
+pcor.test(
+  port_data_subsetted_complete_cases$gad7_treatment_total_final_observed,
+  port_data_subsetted_complete_cases$exp_acquisition_cs_minus_mean,
+  port_data_subsetted_complete_cases$gad7_treatment_total_1,
+  method="pearson"
+)
+
+port_data_subsetted %>% 
+  ggplot(aes(x = exp_acquisition_cs_minus_mean, y = gad7_treatment_total_final_observed)) +
+  geom_point() + 
+  geom_smooth(method=lm)
+```
+
+#### Extinction CS+
+
+```{r}
+extinction_cs_plus_model <- port_data_subsetted %>% 
+  lm(gad7_treatment_total_final_observed ~ exp_extinction_cs_plus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total + demographics_age_at_screening +
+    demographics_biological_sex, data = .)
+
+summary(extinction_cs_plus_model)
+
+pcor.test(port_data_subsetted_complete_cases$gad7_treatment_total_final_observed,
+          port_data_subsetted_complete_cases$exp_extinction_cs_plus_mean,
+          port_data_subsetted_complete_cases$gad7_treatment_total_1,
+          method="pearson")
+
+port_data_subsetted %>% 
+  ggplot(aes(x = exp_extinction_cs_plus_mean, y = gad7_treatment_total_final_observed)) +
+  geom_point() + 
+  geom_smooth(method=lm)
+```
+
+### GAD-7 at follow-up (DV)
+
+#### Acquisition CS-
+
+```{r}
+acquisition_cs_minus_model <- port_data_subsetted %>% 
+  lm(
+    gad7_followup_total ~ exp_acquisition_cs_minus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total, 
+    data = .
+  )
+
+summary(acquisition_cs_minus_model)
+
+pcor.test(
+  port_data_subsetted_complete_cases$gad7_followup_total,
+  port_data_subsetted_complete_cases$exp_acquisition_cs_minus_mean,
+  port_data_subsetted_complete_cases$gad7_treatment_total_1,
+  method="pearson"
+)
+
+port_data_subsetted %>% 
+  ggplot(aes(x = exp_acquisition_cs_minus_mean, y = gad7_followup_total)) +
+  geom_point() + 
+  geom_smooth(method=lm)
+```
+
+#### Extinction CS+
+
+```{r}
+extinction_cs_plus_model <- port_data_subsetted %>% 
+  lm(gad7_followup_total ~ exp_extinction_cs_plus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total, data = .)
+
+summary(extinction_cs_plus_model)
+
+pcor.test(port_data_subsetted_complete_cases$gad7_followup_total,
+          port_data_subsetted_complete_cases$exp_extinction_cs_plus_mean,
+          port_data_subsetted_complete_cases$gad7_treatment_total_1,
+          method="pearson")
+
+port_data_subsetted %>% 
+  ggplot(aes(x = exp_extinction_cs_plus_mean, y = gad7_followup_total)) +
+  geom_point() + 
+  geom_smooth(method=lm)
+```
+
+### FSS scores at follow-up
 
 ```{r}
 fss_model <- port_data_subsetted %>% 
   lm(fss_followup_total ~ exp_extinction_cs_plus_mean + fss_baseline_total + ieso_treatment_completed_total, data = .)
 
+summary(fss_model)
+
 pcor.test(port_data_subsetted_complete_cases$fss_followup_total,
           port_data_subsetted_complete_cases$exp_extinction_cs_plus_mean,
           port_data_subsetted_complete_cases$fss_baseline_total,
           method="pearson")
-
-summary(fss_model)
 
 port_data_subsetted %>% 
   ggplot(aes(x = exp_extinction_cs_plus_mean, y = fss_followup_total)) +
