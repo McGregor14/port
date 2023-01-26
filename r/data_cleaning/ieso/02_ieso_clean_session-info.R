@@ -483,9 +483,14 @@ final_treatment_scores <-
 
 # Last observed (non-NA value) score bought forward
 final_observed_treatment_scores <-
+  
+  # Starting with long data
   session_treatments_scores %>%
+  
+  # For each participant
   group_by(participant_id) %>%
   mutate(across(
+    # And across the following measures
     .cols = c(
       phq9_treatment_total,
       gad7_treatment_total,
@@ -501,15 +506,28 @@ final_observed_treatment_scores <-
       phq9_treatment_binary_depression,
       wsas_treatment_impairment
     ),
+    
     .fns = ~ if_else(
       condition =
+        # If the last treatment session
         treatment_number == max(treatment_number, na.rm = TRUE) &
+        # Is missing
         is.na(.x),
+      
+      # Return the last non-missing value
       true = last(na.omit(.x)),
+      
+      # Otherwise, return the existing score
       false = .x
     ),
+    
+    # Create new columns with "_final_observed" appended to the existing column 
+    # name
     .names = "{col}_final_observed"
   )) %>%
+  
+  # Only keep rows from a participant's final treatment session and newly 
+  # created columns
   filter(treatment_number == max(treatment_number, na.rm = TRUE)) %>% 
   select(participant_id, ends_with("final_observed")) %>% 
   ungroup()

@@ -17,7 +17,7 @@ source(file = here("r", "functions.R"))
 ieso_interim_data_loc <-
   here("data", "interim", "ieso", "step-01")
 
-# Read in dataset
+# Read in datasets
 patient_data <-
   read_rds(paste0(ieso_interim_data_loc, "/ieso-patient-data", ".Rds")) %>%
   # remove_empty: removes empty rows and columns
@@ -26,8 +26,22 @@ patient_data <-
   remove_constant(na.rm = T, quiet = F) %>%
   select(-starts_with(c("sum", "count")))
 
+referral_data <-
+  read_rds(paste0(ieso_interim_data_loc, "/ieso-referral-data", ".Rds"))
+
 
 # Clean variables & generate derived variables ----------------------------
+
+## ieso_referral --------------------------------------------
+patient_data <-
+  patient_data %>%
+  mutate(
+    ieso_referral = if_else(
+      condition = participant_id %in% referral_data$participant_id,
+      true = TRUE,
+      false = FALSE
+    ), .after = participant_id
+  )
 
 
 ## ieso_length_of_treatment_days ------------------------------------------
@@ -55,7 +69,7 @@ patient_data <-
   patient_data %>%
   
   mutate(
-    # Tidy the strings (remove special characters and replace spaces with 
+    # Tidy the strings (remove special characters and replace spaces with
     # underscores)
     ieso_pathway =
       str_replace_all(ieso_pathway, "\\+", " plus") %>%
@@ -92,7 +106,12 @@ patient_data <-
       "ieso_discharge_reason_primary",
       "ieso_discharge_reason_secondary"
     ),
-    ~ str_replace_all(., c("\\/" = " or ", " " = "_", "\\(" = "", "\\)" = ""))
+    ~ str_replace_all(., c(
+      "\\/" = " or ",
+      " " = "_",
+      "\\(" = "",
+      "\\)" = ""
+    ))
   )) %>%
   
   # Convert strings to lower case
@@ -127,10 +146,8 @@ patient_data <-
   
   # Replace spaces with underscores
   mutate(across(
-    .cols = c(
-      "ieso_diagnosis_name",
-      "ieso_protocol_token"
-    ),
+    .cols = c("ieso_diagnosis_name",
+              "ieso_protocol_token"),
     ~ str_replace_all(., " ", "_")
   )) %>%
   

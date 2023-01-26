@@ -11,7 +11,7 @@ source(file = here("r", "functions.R"))
 
 # Read in dataset
 port_data <-
-  read_rds(here("data", "processed", "06_clean-processed-data.Rds"))
+  read_rds(here("data", "processed", "merged", "06_clean-processed-data.Rds"))
 
 
 # Imputation --------------------------------------------------------------
@@ -246,4 +246,4 @@ summary(arsenal::comparedf(port_data_imputed, port_data))
 
 # Save data
 saveRDS(port_data_imputed,
-        here("data", "processed", "07_imputed-processed-data.Rds"))
+        here("data", "processed", "merged", "07_imputed-processed-data.Rds"))

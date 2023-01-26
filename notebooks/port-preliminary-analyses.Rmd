@@ -16,19 +16,60 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r load packages, include=FALSE}
+# Clear workspace
+rm(list = ls())
+
+# Load packages
+library(gt) # creating tables
+library(here) # file referencing
+library(naniar) # visualise missing data
 library(ppcor) # partial correlations
 library(tidyverse) # data manipulation
-library(here) # file referencing
-library(ComplexUpset) # creating upset plots
-library(gt) # creating tables
 library(webshot) # required for saving gt tables
-library(naniar)
-
 ```
 
 ```{r read in dataset, include=FALSE}
-port_data <- read_rds(here("data", "processed", "07_imputed-processed-data.Rds"))
+port_data <- read_rds(here("data", "processed", "merged", "07_imputed-processed-data.Rds"))
+
+port_data_exclusions_applied <- port_data %>% 
+  filter(port_exclusion != TRUE)
 ```
+
+# Demographics
+```{r}
+port_data_exclusions_applied %>%
+  dplyr::select(age = demographics_age_at_screening,
+                sex = demographics_biological_sex,
+                n_sessions = ieso_treatment_completed_total,
+                gad7_baseline = gad7_baseline_total,
+                gad7_change = gad7_treatment_change_observed) %>%
+  group_by(sex) %>%
+  summarise(
+    n = n(),
+    mean_age = mean(age, na.rm = TRUE),
+    mean_gad7 = mean(gad7_baseline, na.rm = TRUE),
+    mean_gad7_change = mean(gad7_change, na.rm = TRUE),
+    median_sessions = median(n_sessions, na.rm = TRUE)
+  ) %>%
+  pivot_longer(cols = -sex, names_to = "variable", values_to = "value") %>% 
+  pivot_wider(names_from = "sex", values_from = "value") %>% 
+  mutate(variable = recode(variable,
+         n = "n",
+         mean_age = "Mean age",
+         mean_gad7 = "Mean GAD-7 study baseline",
+         mean_gad7_change = "Mean GAD-7 change",
+         median_sessions = "Median number of sessions")) %>% 
+  gt() %>%  
+  cols_label(
+    variable = "",
+    female = md("**Female**"),
+    male = md("**Male**")
+  ) %>% 
+  tab_header(title = "PORT Study Demographics") %>% 
+  fmt_number(columns = where(is.numeric),
+             decimals = 2)
+```
+
 
 # Cleaning
 
@@ -47,8 +88,8 @@ port_data_subsetted <- port_data %>%
 
 port_data_subsetted_clean <- na.omit(port_data_subsetted)
 
-
-vis_miss(port_data_subsetted)
+port_data_subsetted %>%  
+vis_miss()
 ```
 
 # Analyses
@@ -115,3 +156,80 @@ port_data_subsetted %>%
   geom_point() + 
   geom_smooth(method=lm)
 ```
+
+# Visualisation
+
+```{r}
+port_data_exclusions_applied <- port_data %>% 
+  filter(port_exclusion != TRUE)
+```
+
+
+
+```{r}
+data_viz_transformed <- port_data_exclusions_applied %>%
+  select(
+    participant_id,
+    gad7_assessment_total,
+    matches("gad7_treatment_total_\\d*$"),
+    phq9_assessment_total,
+    matches("phq9_treatment_total_\\d*$")
+  ) %>%
+  pivot_longer(
+    cols = c(
+      gad7_assessment_total,
+      matches("gad7_treatment_total_\\d*$"),
+      phq9_assessment_total,
+      matches("phq9_treatment_total_\\d*$")
+    ),
+    names_to = "session",
+    values_to = "score"
+  ) %>%
+  mutate(
+    session = case_when(
+      session == "gad7_assessment_total" ~ "gad7_treatment_total_0",
+      session == "phq9_assessment_total" ~ "phq9_treatment_total_0",
+      TRUE ~ session
+    )
+  ) %>%
+  separate(
+    session,
+    into = c("measure", "type", "x", "session"),
+    sep = c("_", "_", "_"),
+    convert = TRUE
+  ) %>%
+  select(-c(type, x)) %>%
+  group_by(measure, session) %>%
+  summarise(across(
+    .cols = score,
+    .fns = list(
+      mean = ~ mean(.x, na.rm = TRUE),
+      sd = ~ sd(.x, na.rm = TRUE),
+      sample_size = ~ sum(!is.na(.x))
+    ),
+    .names = "{.fn}",
+    .groups = "keep"
+  )) %>%
+  ungroup() %>%
+  mutate(
+    se = sd / sqrt(sample_size),
+    se_lower = mean - se,
+    se_upper = mean + se
+  )
+
+data_viz_transformed %>%
+  filter(session < 12) %>%
+  ggplot(., aes(x = session, y = mean, color = measure)) +
+  geom_point() +
+  geom_line() +
+  geom_ribbon(
+    aes(ymin = se_lower, ymax = se_upper, fill = measure),
+    alpha = 0.1,
+    linetype = 0
+  ) +
+  theme_minimal() +
+  geom_text(aes(label = sample_size), nudge_y = .3, size = 3) +
+  scale_x_continuous(breaks = seq(0, 11, by = 1)) +
+  facet_wrap(~measure)
+```
+  

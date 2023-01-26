@@ -39,7 +39,8 @@ processed_data_list <-
 
 # Reorder the list ready for merging
 processed_data_list <-
-  processed_data_list[c("redcap-data",
+  processed_data_list[c("glad-data",
+                        "redcap-data",
                         "midapp-data",
                         "flare-data",
                         "ieso-data")]
@@ -52,6 +53,10 @@ processed_data <- processed_data_list %>%
 processed_data <- processed_data %>% 
   filter(!is.na(baseline_date))
 
+# Reorder biological sex variable
+processed_data <- processed_data %>% 
+  relocate(demographics_biological_sex, .after = demographics_age_at_screening)
+
 # Save data
 saveRDS(processed_data,
-        here("data", "processed", "05_merged-processed-data.Rds"))
+        here("data", "processed", "merged", "05_merged-processed-data.Rds"))
