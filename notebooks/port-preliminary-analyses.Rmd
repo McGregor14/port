@@ -73,6 +73,7 @@ port_data_exclusions_applied %>%
 
 # Cleaning
 
+## Subsetting
 ```{r}
 port_data_subsetted <- port_data %>% 
   filter(port_exclusion == FALSE) %>% 
@@ -86,11 +87,17 @@ port_data_subsetted <- port_data %>%
     fss_baseline_total,
     fss_followup_total)
 
-port_data_subsetted_clean <- na.omit(port_data_subsetted)
+port_data_subsetted_complete_cases <- na.omit(port_data_subsetted)
+```
 
+## Visualise missing data
+```{r}
 port_data_subsetted %>%  
 vis_miss()
 ```
+
+## Skew & kurtosis
+
 
 # Analyses
 
@@ -104,9 +111,9 @@ acquisition_cs_minus_model <- port_data_subsetted %>%
   )
 
 pcor.test(
-  port_data_subsetted_clean$gad7_treatment_total_final_observed,
-  port_data_subsetted_clean$exp_acquisition_cs_minus_mean,
-  port_data_subsetted_clean$gad7_treatment_total_1,
+  port_data_subsetted_complete_cases$gad7_treatment_total_final_observed,
+  port_data_subsetted_complete_cases$exp_acquisition_cs_minus_mean,
+  port_data_subsetted_complete_cases$gad7_treatment_total_1,
   method="pearson"
 )
 
@@ -124,9 +131,9 @@ port_data_subsetted %>%
 extinction_cs_plus_model <- port_data_subsetted %>% 
   lm(gad7_treatment_total_final_observed ~ exp_extinction_cs_plus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total, data = .)
 
-pcor.test(port_data_subsetted_clean$gad7_treatment_total_final_observed,
-          port_data_subsetted_clean$exp_extinction_cs_plus_mean,
-          port_data_subsetted_clean$gad7_treatment_total_1,
+pcor.test(port_data_subsetted_complete_cases$gad7_treatment_total_final_observed,
+          port_data_subsetted_complete_cases$exp_extinction_cs_plus_mean,
+          port_data_subsetted_complete_cases$gad7_treatment_total_1,
           method="pearson")
 
 summary(extinction_cs_plus_model)
@@ -144,9 +151,9 @@ port_data_subsetted %>%
 fss_model <- port_data_subsetted %>% 
   lm(fss_followup_total ~ exp_extinction_cs_plus_mean + fss_baseline_total + ieso_treatment_completed_total, data = .)
 
-pcor.test(port_data_subsetted_clean$fss_followup_total,
-          port_data_subsetted_clean$exp_extinction_cs_plus_mean,
-          port_data_subsetted_clean$fss_baseline_total,
+pcor.test(port_data_subsetted_complete_cases$fss_followup_total,
+          port_data_subsetted_complete_cases$exp_extinction_cs_plus_mean,
+          port_data_subsetted_complete_cases$fss_baseline_total,
           method="pearson")
 
 summary(fss_model)
@@ -232,4 +239,79 @@ data_viz_transformed %>%
   scale_x_continuous(breaks = seq(0, 11, by = 1)) +
   facet_wrap(~measure)
 ```
-  
+
+## Elephant
+
+```{r Elephant wrangling, include=FALSE}
+# Create a list of expectancy rating trial variables
+elephant_long <- port_data_exclusions_applied %>% 
+  select(matches("^exp_.*\\d$")) %>%
+  mutate(n = nrow(.)) %>% 
+  pivot_longer(cols = -n, names_to = "variable", values_to = "rating") %>% 
+  mutate(variable = str_remove(variable, "exp_")) %>%
+  separate(variable, into = c("phase", "cs", "stimulus", "trial"), sep = "_") %>% 
+  select(-cs) %>% 
+  mutate(trial = as.numeric(trial)) %>% 
+  group_by(phase, stimulus, trial) %>% 
+  summarise(mean = mean(rating, na.rm = T), std_dev = sd(rating, na.rm = T), n = mean(n), .groups = "keep") %>% 
+  mutate(sem = std_dev / sqrt(n),
+         ci_low = mean - 2*(sem),
+         ci_high = mean + 2*(sem)) %>% 
+  ungroup() %>% 
+  mutate(Phase = str_to_sentence(phase),
+         Phase = factor(Phase, levels = c("Acquisition", "Extinction")),
+         Stimulus = factor(stimulus, levels = c("plus", "minus")),
+         Stimulus = fct_recode(Stimulus, "CS+" = "plus", "CS-" = "minus")) %>% 
+  select(Phase, Stimulus, Trial = trial, everything()) %>% 
+  select(-c(phase, stimulus)) %>% 
+  arrange(Phase, Stimulus, Trial)
+
+# Function for breaks
+breaks_fun <- function(x) {
+  if (max(x) > 12) {
+    seq(0, 18, 1)
+  } else {
+    seq(0, 12, 1)
+  }
+}
+```
+
+```{r}
+elephant_plot_exclusions_applied <- elephant_long %>% 
+  ggplot(aes(x = Trial, y = mean, color = Stimulus)) +
+  geom_point() +
+  geom_line() +
+  geom_ribbon(aes(ymin = ci_low, ymax = ci_high, fill = Stimulus),
+              linetype = 0,
+              alpha = 0.3,
+              size = 0.8
+  ) +
+  scale_fill_manual(values = c("#DF3B57", "#5762D5")) +
+  scale_colour_manual(values = c("#DF3B57", "#5762D5")) +
+  facet_grid(~ Phase, 
+               scales = "free_x",
+               space = "free_x"
+    ) +
+    # adjust the labels
+    labs(y="Mean expectancy rating", 
+         x = "Trials"
+    ) +
+    theme(strip.background = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.position = 'bottom',
+          text = element_text(size = 10),
+          strip.text.x = element_text(size = 10)
+    ) +
+    scale_x_continuous(breaks = breaks_fun) +
+    scale_y_continuous(breaks = seq(0, 10, by = 1), limits = c(1, 9))
+
+# Save
+ggsave(
+  file = paste0(here("reports", "figures"), "/elephant-plot_exclusions-applied.png"), 
+  plot = elephant_plot_exclusions_applied, 
+  width = 16, 
+  height = 8, 
+  units = "cm"
+  )
+```
