@@ -20,6 +20,7 @@ knitr::opts_chunk$set(echo = FALSE)
 rm(list = ls())
 
 # Load packages
+library(broom) # tidying output
 library(gt) # creating tables
 library(here) # file referencing
 library(naniar) # visualise missing data
@@ -133,7 +134,19 @@ port_data_subsetted %>%
   geom_point() + 
   geom_smooth(method=lm)
 
-acquisition_cs_minus_model$coefficients
+acquisition_cs_minus_model_glance <- glance(acquisition_cs_minus_model)
+
+acquisition_cs_minus_model_glance
+
+write_csv(acquisition_cs_minus_model_glance, here("reports", "tables", "primary_acq_summary.csv"))
+
+acquisition_cs_minus_model_tidy <- tidy(acquisition_cs_minus_model, conf.int = T) %>% 
+  mutate(pval.adj = p.adjust(p.value, method = "holm", n = 4)) %>% 
+  mutate(model = "acquisition_cs_minus", .before = everything())
+
+acquisition_cs_minus_model_tidy
+
+write_csv(acquisition_cs_minus_model_tidy, here("reports", "tables", "primary_acq_coefficients.csv"))
 ```
 
 ### Extinction CS+
@@ -153,6 +166,52 @@ port_data_subsetted %>%
   ggplot(aes(x = exp_extinction_cs_plus_mean, y = gad7_treatment_total_final_observed)) +
   geom_point() + 
   geom_smooth(method=lm)
+
+extinction_cs_plus_model_glance <- glance(extinction_cs_plus_model)
+
+write_csv(extinction_cs_plus_model_glance, here("reports", "tables", "primary_ext_summary.csv"))
+
+extinction_cs_plus_model_tidy <- tidy(extinction_cs_plus_model, conf.int = TRUE) %>% 
+  mutate(pval.adj = p.adjust(p.value, method = "holm", n = 4)) %>% 
+  mutate(model = "extinction_cs_plus", .before = everything())
+
+extinction_cs_plus_model_tidy
+
+write_csv(extinction_cs_plus_model_tidy, here("reports", "tables", "primary_ext_coefficients.csv"))
+```
+
+### Combined
+```{r}
+primary_models_tidy <- rbind(acquisition_cs_minus_model_tidy, extinction_cs_plus_model_tidy) %>% 
+  mutate(sig_05 = if_else(p.value < 0.05, TRUE, FALSE),
+         sig_05_adj = if_else(pval.adj < 0.05, TRUE, FALSE),
+         term = factor(if_else(str_detect(term, "exp_"), "fc", term)),
+         iv = case_when(term == "gad7_treatment_total_1" ~ FALSE,
+                               term == "ieso_treatment_completed_total" ~ FALSE,
+                               TRUE ~ TRUE))
+```
+
+```{r}
+primary_models_tidy %>% 
+  ggplot(aes(x = estimate, y = fct_rev(term), colour = model, alpha = iv)) +
+  geom_point(aes(shape = sig_05_adj), size = 2) +
+  facet_wrap(~model) +
+  geom_errorbar(aes(xmin = conf.low, xmax = conf.high), width = 0) + 
+  theme_minimal() +
+  scale_color_manual(values=c("#153860", "#811D1C")) +
+  scale_shape_manual(values=c(1, 16)) +
+  scale_y_discrete(name = element_blank(),
+                   labels = c("ieso_treatment_completed_total" = "Number of treatment sessions",
+                            "gad7_treatment_total_1" = "First session GAD-7 score",
+                            "fc" = "Fear conditioning predictor",
+                            "(Intercept)" = "Intercept")) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        strip.text.x = element_blank()) + 
+  labs(title = "Associations between final session GAD-7 score and expectancy ratings", 
+       x = "Beta estimate")
+
+ggsave(here("reports", "figures", "primary-regression-forest-plot.pdf"))
 ```
 
 ## Secondary
