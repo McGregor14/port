@@ -11,6 +11,8 @@ knit: (function(input, ...) {
   })
 ---
 
+# Setup
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
@@ -37,46 +39,15 @@ port_data_exclusions_applied <- port_data %>%
   filter(port_exclusion != TRUE)
 ```
 
-# Demographics
-```{r}
-port_data_exclusions_applied %>%
-  dplyr::select(age = demographics_age_at_screening,
-                sex = demographics_biological_sex,
-                n_sessions = ieso_treatment_completed_total,
-                gad7_baseline = gad7_baseline_total,
-                gad7_change = gad7_treatment_change_observed) %>%
-  group_by(sex) %>%
-  summarise(
-    n = n(),
-    mean_age = mean(age, na.rm = TRUE),
-    mean_gad7 = mean(gad7_baseline, na.rm = TRUE),
-    mean_gad7_change = mean(gad7_change, na.rm = TRUE),
-    median_sessions = median(n_sessions, na.rm = TRUE)
-  ) %>%
-  pivot_longer(cols = -sex, names_to = "variable", values_to = "value") %>% 
-  pivot_wider(names_from = "sex", values_from = "value") %>% 
-  mutate(variable = recode(variable,
-         n = "n",
-         mean_age = "Mean age",
-         mean_gad7 = "Mean GAD-7 study baseline",
-         mean_gad7_change = "Mean GAD-7 change",
-         median_sessions = "Median number of sessions")) %>% 
-  gt() %>%  
-  cols_label(
-    variable = "",
-    female = md("**Female**"),
-    male = md("**Male**")
-  ) %>% 
-  tab_header(title = "PORT Study Demographics") %>% 
-  fmt_number(columns = where(is.numeric),
-             decimals = 2)
-```
-
-
 # Cleaning
 
-## Subsetting
+## Subsets
 ```{r}
+# Exclusions applied: all variables, filtered participants
+port_data_exclusions_applied <- port_data %>% 
+  filter(port_exclusion != TRUE)
+
+# Subsetted: selected variables, filtered participants
 port_data_subsetted <- port_data %>% 
   filter(port_exclusion == FALSE) %>% 
   dplyr::select(
@@ -92,8 +63,92 @@ port_data_subsetted <- port_data %>%
     fss_baseline_total,
     fss_followup_total)
 
+# Subsetted, complete cases: selected variables, filtered participants, no missing data
 port_data_subsetted_complete_cases <- na.omit(port_data_subsetted)
 ```
+
+## Standardising
+
+```{r}
+port_data_exclusions_applied_std <- port_data_exclusions_applied %>% 
+  mutate(across(
+    .cols = c(
+      exp_acquisition_cs_minus_mean,
+      exp_extinction_cs_plus_mean,
+      gad7_treatment_total_1 + 
+      ieso_treatment_completed_total,
+      demographics_age_at_screening,
+      demographics_biological_sex,
+      fss_baseline_total
+    )
+  ))
+```
+
+
+# Demographics
+```{r}
+demographics_data <- 
+  port_data_exclusions_applied %>%
+  
+  # Rename and subset variables
+  dplyr::select(age = demographics_age_at_screening,
+                sex = demographics_biological_sex,
+                n_sessions = ieso_treatment_completed_total,
+                gad7_baseline = gad7_baseline_total,
+                gad7_change = gad7_treatment_change_observed) %>%
+  group_by(sex) %>%
+  
+  # Generate summary table
+  summarise(
+    n = n(),
+    mean_age = mean(age, na.rm = TRUE),
+    mean_gad7 = mean(gad7_baseline, na.rm = TRUE),
+    mean_gad7_change = mean(gad7_change, na.rm = TRUE),
+    median_sessions = median(n_sessions, na.rm = TRUE)
+  ) %>%
+  
+  # Reshape data so that data is long with male/female columns
+  pivot_longer(cols = -sex, names_to = "variable", values_to = "value") %>% 
+  pivot_wider(names_from = "sex", values_from = "value") %>%
+  
+  # Rename values in variable column
+  mutate(variable = recode(variable,
+                           n = "n",
+                           mean_age = "Mean age",
+                           mean_gad7 = "Mean GAD-7 study baseline",
+                           mean_gad7_change = "Mean GAD-7 change",
+                           median_sessions = "Median number of sessions")) 
+
+demographics_data %>% 
+  
+  # Create display table from data
+  gt() %>%  
+  cols_label(
+    variable = "",
+    female = md("**Female**"),
+    male = md("**Male**")
+  ) %>% 
+  tab_header(title = "PORT Study Demographics") %>% 
+  fmt_number(columns = where(is.numeric),
+             decimals = 2) %>% 
+  tab_options(table.font.size = px(11)) %>%
+  opt_table_font(
+    font = list(
+      google_font(name = "Merriweather"),
+      "Cochin", "Serif"
+    )
+  ) %>% 
+  
+  # Format n and median rows to have 1 decimal place 
+  fmt(columns = c(female, male),
+      rows = which(variable %in% c("n", "Median number of sessions")), 
+      fns = function(x) { 
+        formatC(as.numeric(x), digits = 0, format = "f")
+      } )
+```
+
+
+# Explore
 
 ## Visualise missing data
 ```{r}
@@ -106,6 +161,42 @@ vis_miss()
 descr(port_data_subsetted)
 ```
 
+## Correlations
+
+### Acquisition CS- x GAD-7 at last session
+```{r}
+# Partial correlation
+pcor.test(
+  port_data_subsetted_complete_cases$gad7_treatment_total_final_observed,
+  port_data_subsetted_complete_cases$exp_acquisition_cs_minus_mean,
+  port_data_subsetted_complete_cases$gad7_treatment_total_1,
+  method="pearson"
+)
+
+# Scatterplot
+port_data_subsetted %>% 
+  ggplot(aes(x = exp_acquisition_cs_minus_mean, y = gad7_treatment_total_final_observed)) +
+  geom_point() + 
+  geom_smooth(method=lm)
+```
+
+### Extinction CS+ x GAD-7 at last session
+
+```{r}
+# Partial correlation
+pcor.test(
+  port_data_subsetted_complete_cases$gad7_treatment_total_final_observed,
+  port_data_subsetted_complete_cases$exp_extinction_cs_plus_mean,
+  port_data_subsetted_complete_cases$gad7_treatment_total_1,
+  method="pearson"
+)
+
+# Scatterplot
+port_data_subsetted %>% 
+  ggplot(aes(x = exp_extinction_cs_plus_mean, y = gad7_treatment_total_final_observed)) +
+  geom_point() + 
+  geom_smooth(method=lm)
+```
 
 # Analyses
 
@@ -114,102 +205,130 @@ descr(port_data_subsetted)
 ### Acquisition CS-
 
 ```{r}
-acquisition_cs_minus_model <- port_data_subsetted %>% 
+# Generate model
+pri_acq_minus_model <- 
+  port_data_subsetted %>%
   lm(
-    gad7_treatment_total_final_observed ~ exp_acquisition_cs_minus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total, 
+    gad7_treatment_total_final_observed ~ 
+      exp_acquisition_cs_minus_mean + 
+      gad7_treatment_total_1 + 
+      ieso_treatment_completed_total,
     data = .
   )
 
-summary(acquisition_cs_minus_model)
+# Model output
+summary(pri_acq_minus_model)
 
-pcor.test(
-  port_data_subsetted_complete_cases$gad7_treatment_total_final_observed,
-  port_data_subsetted_complete_cases$exp_acquisition_cs_minus_mean,
-  port_data_subsetted_complete_cases$gad7_treatment_total_1,
-  method="pearson"
-)
+# Save single row summary of model
+pri_acq_minus_model_glance <- 
+  glance(pri_acq_minus_model)
 
-port_data_subsetted %>% 
-  ggplot(aes(x = exp_acquisition_cs_minus_mean, y = gad7_treatment_total_final_observed)) +
-  geom_point() + 
-  geom_smooth(method=lm)
-
-acquisition_cs_minus_model_glance <- glance(acquisition_cs_minus_model)
-
-acquisition_cs_minus_model_glance
-
-write_csv(acquisition_cs_minus_model_glance, here("reports", "tables", "primary_acq_summary.csv"))
-
-acquisition_cs_minus_model_tidy <- tidy(acquisition_cs_minus_model, conf.int = T) %>% 
+# Save summary data.frame of test results
+pri_acq_minus_model_tidy <- 
+  tidy(pri_acq_minus_model, conf.int = T) %>% 
+  # Add column of adjusted p-values (holm correction)
   mutate(pval.adj = p.adjust(p.value, method = "holm", n = 4)) %>% 
-  mutate(model = "acquisition_cs_minus", .before = everything())
-
-acquisition_cs_minus_model_tidy
-
-write_csv(acquisition_cs_minus_model_tidy, here("reports", "tables", "primary_acq_coefficients.csv"))
+  # Add column describing model for later merge
+  mutate(analysis = "primary", 
+         model = "acquisition_cs_minus", 
+         .before = everything())
 ```
 
 ### Extinction CS+
 
 ```{r}
-extinction_cs_plus_model <- port_data_subsetted %>% 
-  lm(gad7_treatment_total_final_observed ~ exp_extinction_cs_plus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total, data = .)
+# Generate model
+pri_ext_plus_model <- 
+  port_data_subsetted %>%
+  lm(
+    gad7_treatment_total_final_observed ~ 
+      exp_extinction_cs_plus_mean + 
+      gad7_treatment_total_1 + 
+      ieso_treatment_completed_total,
+    data = .
+  )
 
-summary(extinction_cs_plus_model)
+# Model output
+summary(pri_ext_plus_model)
 
-pcor.test(port_data_subsetted_complete_cases$gad7_treatment_total_final_observed,
-          port_data_subsetted_complete_cases$exp_extinction_cs_plus_mean,
-          port_data_subsetted_complete_cases$gad7_treatment_total_1,
-          method="pearson")
+# Save single row summary of model
+pri_ext_plus_model_glance <- 
+  glance(pri_ext_plus_model)
 
-port_data_subsetted %>% 
-  ggplot(aes(x = exp_extinction_cs_plus_mean, y = gad7_treatment_total_final_observed)) +
-  geom_point() + 
-  geom_smooth(method=lm)
-
-extinction_cs_plus_model_glance <- glance(extinction_cs_plus_model)
-
-write_csv(extinction_cs_plus_model_glance, here("reports", "tables", "primary_ext_summary.csv"))
-
-extinction_cs_plus_model_tidy <- tidy(extinction_cs_plus_model, conf.int = TRUE) %>% 
+# Save summary data.frame of test results
+pri_ext_plus_model_tidy <- 
+  tidy(pri_ext_plus_model, conf.int = T) %>% 
+  # Add column of adjusted p-values (holm correction)
   mutate(pval.adj = p.adjust(p.value, method = "holm", n = 4)) %>% 
-  mutate(model = "extinction_cs_plus", .before = everything())
-
-extinction_cs_plus_model_tidy
-
-write_csv(extinction_cs_plus_model_tidy, here("reports", "tables", "primary_ext_coefficients.csv"))
+  # Add column describing model for later merge
+  mutate(analysis = "primary", 
+         model = "extinction_cs_plus", 
+         .before = everything())
 ```
 
 ### Combined
 ```{r}
-primary_models_tidy <- rbind(acquisition_cs_minus_model_tidy, extinction_cs_plus_model_tidy) %>% 
+primary_models_tidy <- rbind(pri_acq_minus_model_tidy, pri_ext_plus_model_tidy) %>% 
   mutate(sig_05 = if_else(p.value < 0.05, TRUE, FALSE),
          sig_05_adj = if_else(pval.adj < 0.05, TRUE, FALSE),
          term = factor(if_else(str_detect(term, "exp_"), "fc", term)),
-         iv = case_when(term == "gad7_treatment_total_1" ~ FALSE,
-                               term == "ieso_treatment_completed_total" ~ FALSE,
-                               TRUE ~ TRUE))
+         iv = case_when(
+           term == "gad7_treatment_total_1" ~ FALSE,
+           term == "ieso_treatment_completed_total" ~ FALSE,
+           TRUE ~ TRUE))
+
+primary_models_tidy
 ```
 
 ```{r}
-primary_models_tidy %>% 
-  ggplot(aes(x = estimate, y = fct_rev(term), colour = model, alpha = iv)) +
-  geom_point(aes(shape = sig_05_adj), size = 2) +
-  facet_wrap(~model) +
-  geom_errorbar(aes(xmin = conf.low, xmax = conf.high), width = 0) + 
+primary_models_tidy %>%
+  filter(term != "(Intercept)") %>% 
+  
+  # Plot
+  ggplot(aes(
+    x = estimate,
+    y = fct_rev(term),
+    group = fct_rev(model),
+    colour = model,
+    alpha = iv
+  )) +
+  geom_point(aes(shape = sig_05_adj),
+             size = 2,
+             position = position_dodge(width = .2)) +
+  
+  geom_errorbar(aes(xmin = conf.low, xmax = conf.high),
+                position = position_dodge(width = .2),
+                width = 0) +
+  
+  # Colour/shape settings
+  scale_color_manual(values = c("#811D1C", "#153860")) +
+  scale_shape_manual(values = c(1, 16)) +
+  scale_alpha_discrete(range=c(0.4, 1)) +
+  
+  # Labels
+  scale_y_discrete(
+    labels = c(
+      "ieso_treatment_completed_total" = "Number of treatment sessions",
+      "gad7_treatment_total_1" = "First session GAD-7 score",
+      "fc" = "Fear conditioning predictor",
+      "(Intercept)" = "Intercept"
+    )
+  ) +
+  labs(title = "Associations between GAD-7 scores and expectancy ratings",
+       caption = paste0("Acquisition CS- model intercept = ", 
+                        round(pri_acq_minus_model$coefficients[1], digits = 2),
+                        "\nExtinction CS+ model intercept = ", 
+                        round(pri_ext_plus_model$coefficients[1], digits = 2)),
+       x = "Beta coefficient estimate",
+       y = element_blank()) +
+  
+  # Theme
   theme_minimal() +
-  scale_color_manual(values=c("#153860", "#811D1C")) +
-  scale_shape_manual(values=c(1, 16)) +
-  scale_y_discrete(name = element_blank(),
-                   labels = c("ieso_treatment_completed_total" = "Number of treatment sessions",
-                            "gad7_treatment_total_1" = "First session GAD-7 score",
-                            "fc" = "Fear conditioning predictor",
-                            "(Intercept)" = "Intercept")) +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.major.y = element_blank(),
-        strip.text.x = element_blank()) + 
-  labs(title = "Associations between final session GAD-7 score and expectancy ratings", 
-       x = "Beta estimate")
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    strip.text.x = element_blank()
+  )
 
 ggsave(here("reports", "figures", "primary-regression-forest-plot.pdf"))
 ```
@@ -221,26 +340,13 @@ ggsave(here("reports", "figures", "primary-regression-forest-plot.pdf"))
 #### Acquisition CS-
 
 ```{r}
-acquisition_cs_minus_model <- port_data_subsetted %>% 
+pri_acq_minus_model <- port_data_subsetted %>% 
   lm(
     gad7_treatment_total_final_observed ~ exp_acquisition_cs_minus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total + demographics_age_at_screening +
     demographics_biological_sex, 
     data = .
   )
 
-summary(acquisition_cs_minus_model)
-
-pcor.test(
-  port_data_subsetted_complete_cases$gad7_treatment_total_final_observed,
-  port_data_subsetted_complete_cases$exp_acquisition_cs_minus_mean,
-  port_data_subsetted_complete_cases$gad7_treatment_total_1,
-  method="pearson"
-)
-
-port_data_subsetted %>% 
-  ggplot(aes(x = exp_acquisition_cs_minus_mean, y = gad7_treatment_total_final_observed)) +
-  geom_point() + 
-  geom_smooth(method=lm)
 ```
 
 #### Extinction CS+
@@ -268,13 +374,13 @@ port_data_subsetted %>%
 #### Acquisition CS-
 
 ```{r}
-acquisition_cs_minus_model <- port_data_subsetted %>% 
+pri_acq_minus_model <- port_data_subsetted %>% 
   lm(
     gad7_followup_total ~ exp_acquisition_cs_minus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total, 
     data = .
   )
 
-summary(acquisition_cs_minus_model)
+summary(pri_acq_minus_model)
 
 pcor.test(
   port_data_subsetted_complete_cases$gad7_followup_total,
@@ -327,15 +433,23 @@ port_data_subsetted %>%
   geom_smooth(method=lm)
 ```
 
+## Exploratory
+
+### Discrimination scores (IV)
+
+### Affective ratings (IV)
+
+### Non-fear conditioning (IVs)
+
+### Depression (covariate)
+
+### Low GAD-7 excluded
+
+### Non-completers excluded
+
 # Visualisation
 
-```{r}
-port_data_exclusions_applied <- port_data %>% 
-  filter(port_exclusion != TRUE)
-```
-
-
-
+## Symptom trajectories
 ```{r}
 data_viz_transformed <- port_data_exclusions_applied %>%
   select(
