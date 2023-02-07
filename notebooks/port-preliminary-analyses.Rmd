@@ -275,8 +275,8 @@ pri_ext_plus_model_tidy <-
 ### Combined
 ```{r}
 primary_models_tidy <- rbind(pri_acq_minus_model_tidy, pri_ext_plus_model_tidy) %>% 
-  mutate(sig_05 = if_else(p.value < 0.05, TRUE, FALSE),
-         sig_05_adj = if_else(pval.adj < 0.05, TRUE, FALSE),
+  mutate(sig_05 = if_else(p.value <= 0.05, TRUE, FALSE),
+         sig_05_adj = if_else(pval.adj <= 0.05, TRUE, FALSE),
          term = factor(if_else(str_detect(term, "exp_"), "fc", term)),
          iv = case_when(
            term == "gad7_treatment_total_1_z" ~ FALSE,
@@ -317,11 +317,11 @@ primary_models_tidy %>%
   
   # Colour/shape settings
   scale_color_manual(values = c("#811D1C", "#153860"),
-                     labels = c("Acquisition CS+", "Extinction CS-")) +
+                     labels = c("Acquisition CS-", "Extinction CS+")) +
   scale_shape_manual(values = c(1, 16),
                      labels = c("p > 0.05", "p <= 0.05")) +
   scale_alpha_discrete(range = c(0.5, 1),
-                       labels = c("Covariate", "IV")) +
+                       labels = c("Covariate", "Explanatory")) +
   
   # Labels
   scale_y_discrete(
@@ -332,7 +332,8 @@ primary_models_tidy %>%
     )
   ) +
   labs(
-    title = "Primary analyses",
+    title = "Primary analyses:
+    \nInfluence of fear conditioning on last treatment session GAD-7 score",
     subtitle = "\nOutcome: last treatment session GAD-7 scores
     \nModel 1: mean acquisition CS- expectancy
     \nModel 2: mean extinction CS+ expectancy",
@@ -346,7 +347,7 @@ primary_models_tidy %>%
     y = element_blank(),
     shape = "Significance",
     color = "Model",
-    alpha = "Variable"
+    alpha = "Variable type"
   ) +
   
   # Theme
@@ -362,7 +363,8 @@ primary_models_tidy %>%
     legend.text=element_text(size=8)
   )
 
-ggsave(here("reports", "figures", "primary-regression-forest-plot.png"))
+ggsave(here("reports", "figures", "primary-regression-forest-plot.png"),
+  bg = "white")
 ```
 
 ## Secondary
@@ -439,21 +441,31 @@ sec_ext_plus_model_tidy1 <-
 
 #### Combined
 ```{r}
-secondary_models_tidy1 <- rbind(sec_acq_minus_model_tidy1, sec_ext_plus_model_tidy1) %>% 
-  mutate(sig_05 = if_else(p.value < 0.05, TRUE, FALSE),
-         sig_05_adj = if_else(pval.adj < 0.05, TRUE, FALSE),
-         term = factor(if_else(str_detect(term, "exp_"), "fc", term)),
-         iv = case_when(
-           term == "gad7_treatment_total_1_z" ~ FALSE,
-           term == "ieso_treatment_completed_total_z" ~ FALSE,
-           term == "demographics_age_at_screening_z" ~ FALSE,
-           term == "demographics_biological_sexmale" ~ FALSE,
-           TRUE ~ TRUE),
-         term = factor(term, level = c("demographics_biological_sexmale",
-                 "demographics_age_at_screening_z",
-                 "ieso_treatment_completed_total_z",
-                 "gad7_treatment_total_1_z",
-                 "fc")))
+secondary_models_tidy1 <-
+  rbind(sec_acq_minus_model_tidy1, sec_ext_plus_model_tidy1) %>%
+  mutate(
+    sig_05 = if_else(p.value <= 0.05, TRUE, FALSE),
+    sig_05_adj = if_else(pval.adj <= 0.05, TRUE, FALSE),
+    term = factor(if_else(str_detect(term, "exp_"), "fc", term)),
+    iv = case_when(
+      term == "gad7_treatment_total_1_z" ~ FALSE,
+      term == "ieso_treatment_completed_total_z" ~ FALSE,
+      term == "demographics_age_at_screening_z" ~ FALSE,
+      term == "demographics_biological_sexmale" ~ FALSE,
+      TRUE ~ TRUE
+    ),
+    term = factor(
+      term,
+      level = c(
+        "(Intercept)",
+        "demographics_biological_sexmale",
+        "demographics_age_at_screening_z",
+        "ieso_treatment_completed_total_z",
+        "gad7_treatment_total_1_z",
+        "fc"
+      )
+    )
+  )
 
 secondary_models_tidy1
 ```
@@ -489,11 +501,11 @@ secondary_models_tidy1 %>%
   
   # Colour/shape settings
   scale_color_manual(values = c("#811D1C", "#153860"),
-                     labels = c("Acquisition CS+", "Extinction CS-")) +
+                     labels = c("Acquisition CS-", "Extinction CS+")) +
   scale_shape_manual(values = c(1, 16),
                      labels = c("p > 0.05", "p <= 0.05")) +
   scale_alpha_discrete(range = c(0.5, 1),
-                       labels = c("Covariate", "IV")) +
+                       labels = c("Covariate", "Explanatory")) +
   
   # Labels
   scale_y_discrete(
@@ -506,7 +518,8 @@ secondary_models_tidy1 %>%
     )
   ) +
   labs(
-    title = "Secondary analyses: age & sex adjustment",
+    title = "Secondary analyses:
+    \nPrimary analyses with age & sex adjustment",
     subtitle = "\nOutcome: last treatment session GAD-7 scores
     \nModel 1: mean acquisition CS- expectancy
     \nModel 2: mean extinction CS+ expectancy",
@@ -520,7 +533,7 @@ secondary_models_tidy1 %>%
     y = element_blank(),
     shape = "Significance",
     color = "Model",
-    alpha = "Variable"
+    alpha = "Variable type"
   ) +
   
   # Theme
@@ -536,7 +549,8 @@ secondary_models_tidy1 %>%
     legend.text=element_text(size=8)
   )
 
-ggsave(here("reports", "figures", "secondary1-regression-forest-plot.png"))
+ggsave(here("reports", "figures", "secondary1-regression-forest-plot.png"),
+  bg = "white")
 ```
 
 ### GAD-7 at follow-up (DV)
@@ -544,64 +558,365 @@ ggsave(here("reports", "figures", "secondary1-regression-forest-plot.png"))
 #### Acquisition CS-
 
 ```{r}
-pri_acq_minus_model <- port_data_subsetted %>% 
+# Generate model
+sec_acq_minus_model2 <- 
+  port_data_exclusions_applied_std %>%
   lm(
-    gad7_followup_total ~ exp_acquisition_cs_minus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total, 
+    gad7_followup_total ~ 
+      exp_acquisition_cs_minus_mean_z + 
+      gad7_treatment_total_1_z + 
+      ieso_treatment_completed_total_z,
     data = .
   )
 
-summary(pri_acq_minus_model)
+# Model output
+summary(sec_acq_minus_model2)
 
-pcor.test(
-  port_data_subsetted_complete_cases$gad7_followup_total,
-  port_data_subsetted_complete_cases$exp_acquisition_cs_minus_mean,
-  port_data_subsetted_complete_cases$gad7_treatment_total_1,
-  method="pearson"
-)
+# Save single row summary of model
+sec_acq_minus_model_glance2 <- 
+  glance(sec_acq_minus_model2)
 
-port_data_subsetted %>% 
-  ggplot(aes(x = exp_acquisition_cs_minus_mean, y = gad7_followup_total)) +
-  geom_point() + 
-  geom_smooth(method=lm)
+# Save summary data.frame of test results
+sec_acq_minus_model_tidy2 <- 
+  tidy(sec_acq_minus_model2, conf.int = T) %>% 
+  # Add column of adjusted p-values (holm correction)
+  mutate(pval.adj = p.adjust(p.value, method = "holm", n = 4)) %>% 
+  # Add column describing model for later merge
+  mutate(analysis = "secondary - gad7 followup dv", 
+         model = "acquisition_cs_minus", 
+         .before = everything())
 ```
 
 #### Extinction CS+
 
 ```{r}
-extinction_cs_plus_model <- port_data_subsetted %>% 
-  lm(gad7_followup_total ~ exp_extinction_cs_plus_mean + gad7_treatment_total_1 + ieso_treatment_completed_total, data = .)
+# Generate model
+sec_ext_plus_model2 <- 
+  port_data_exclusions_applied_std %>%
+  lm(
+    gad7_followup_total ~ 
+      exp_extinction_cs_plus_mean_z + 
+      gad7_treatment_total_1_z + 
+      ieso_treatment_completed_total_z,
+    data = .
+  )
 
-summary(extinction_cs_plus_model)
+# Model output
+summary(sec_ext_plus_model2)
 
-pcor.test(port_data_subsetted_complete_cases$gad7_followup_total,
-          port_data_subsetted_complete_cases$exp_extinction_cs_plus_mean,
-          port_data_subsetted_complete_cases$gad7_treatment_total_1,
-          method="pearson")
+# Save single row summary of model
+sec_ext_plus_model_glance2 <- 
+  glance(sec_ext_plus_model2)
 
-port_data_subsetted %>% 
-  ggplot(aes(x = exp_extinction_cs_plus_mean, y = gad7_followup_total)) +
-  geom_point() + 
-  geom_smooth(method=lm)
+# Save summary data.frame of test results
+sec_ext_plus_model_tidy2 <- 
+  tidy(sec_ext_plus_model2, conf.int = T) %>% 
+  # Add column of adjusted p-values (holm correction)
+  mutate(pval.adj = p.adjust(p.value, method = "holm", n = 4)) %>% 
+  # Add column describing model for later merge
+  mutate(analysis = "secondary - gad7 followup dv", 
+         model = "extinction_cs_plus", 
+         .before = everything())
+```
+
+#### Combined
+```{r}
+secondary_models_tidy2 <- rbind(sec_acq_minus_model_tidy2, sec_ext_plus_model_tidy2) %>% 
+  mutate(sig_05 = if_else(p.value <= 0.05, TRUE, FALSE),
+         sig_05_adj = if_else(pval.adj <= 0.05, TRUE, FALSE),
+         term = factor(if_else(str_detect(term, "exp_"), "fc", term)),
+         iv = case_when(
+           term == "gad7_treatment_total_1_z" ~ FALSE,
+           term == "ieso_treatment_completed_total_z" ~ FALSE,
+           TRUE ~ TRUE),
+         term = fct_rev(term))
+
+secondary_models_tidy2
+```
+
+#### Plot
+
+```{r}
+secondary_models_tidy2 %>%
+  filter(term != "(Intercept)") %>%
+  
+  # Plot
+  ggplot(aes(
+    x = estimate,
+    y = term,
+    group = fct_rev(model),
+    colour = model,
+    alpha = iv
+  )) +
+  geom_point(aes(shape = sig_05_adj),
+             size = 2,
+             position = position_dodge(width = .3)) +
+  
+  geom_errorbar(
+    aes(xmin = conf.low, xmax = conf.high),
+    position = position_dodge(width = .3),
+    width = 0
+  ) +
+  
+  scale_x_continuous(limits = c(-5, 5), breaks = round(seq(-5, 5, by = 1),1)) +
+  
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  
+  # Colour/shape settings
+  scale_color_manual(values = c("#811D1C", "#153860"),
+                     labels = c("Acquisition CS-", "Extinction CS+")) +
+  scale_shape_manual(values = c(1, 16),
+                     labels = c("p > 0.05", "p <= 0.05")) +
+  scale_alpha_discrete(range = c(0.5, 1),
+                       labels = c("Covariate", "Explanatory")) +
+  
+  # Labels
+  scale_y_discrete(
+    labels = c(
+      "ieso_treatment_completed_total_z" = "Number of treatment sessions",
+      "gad7_treatment_total_1_z" = "First session GAD-7 score",
+      "fc" = "Fear conditioning predictor"
+    )
+  ) +
+  labs(
+    title = "Secondary analyses:
+    \nInfluence of fear conditioning on one-month follow-up GAD-7 score",
+    subtitle = "\nOutcome: follow-up GAD-7 scores
+    \nModel 1: mean acquisition CS- expectancy
+    \nModel 2: mean extinction CS+ expectancy",
+    caption = paste0("Intercepts",
+      "\nModel 1 = ",
+      round(sec_acq_minus_model2$coefficients[1], digits = 2),
+      "\nModel 2 = ",
+      round(sec_ext_plus_model2$coefficients[1], digits = 2)
+    ),
+    x = "Standardised beta coefficients",
+    y = element_blank(),
+    shape = "Significance",
+    color = "Model",
+    alpha = "Variable type"
+  ) +
+  
+  # Theme
+  theme_minimal() +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    strip.text.x = element_blank(),
+    plot.caption = element_text(hjust = 0),
+    plot.title = element_text(size=11),
+    plot.subtitle = element_text(size=10),
+    legend.title=element_text(size=9),
+    legend.text=element_text(size=8)
+  )
+
+ggsave(here("reports", "figures", "secondary2-regression-forest-plot.png"),
+  bg = "white")
 ```
 
 ### FSS scores at follow-up
 
+#### Acquisition CS-
+
 ```{r}
-fss_model <- port_data_subsetted %>% 
-  lm(fss_followup_total ~ exp_extinction_cs_plus_mean + fss_baseline_total + ieso_treatment_completed_total, data = .)
+# Generate model
+sec_acq_minus_model3 <- 
+  port_data_exclusions_applied_std %>%
+  lm(
+    fss_followup_total ~ 
+      exp_acquisition_cs_minus_mean_z + 
+      fss_baseline_total_z + 
+      ieso_treatment_completed_total_z,
+    data = .
+  )
 
-summary(fss_model)
+# Model output
+summary(sec_acq_minus_model3)
 
-pcor.test(port_data_subsetted_complete_cases$fss_followup_total,
-          port_data_subsetted_complete_cases$exp_extinction_cs_plus_mean,
-          port_data_subsetted_complete_cases$fss_baseline_total,
-          method="pearson")
+# Save single row summary of model
+sec_acq_minus_model_glance3 <- 
+  glance(sec_acq_minus_model3)
 
-port_data_subsetted %>% 
-  ggplot(aes(x = exp_extinction_cs_plus_mean, y = fss_followup_total)) +
-  geom_point() + 
-  geom_smooth(method=lm)
+# Save summary data.frame of test results
+sec_acq_minus_model_tidy3 <- 
+  tidy(sec_acq_minus_model3, conf.int = T) %>% 
+  # Add column of adjusted p-values (holm correction)
+  mutate(pval.adj = p.adjust(p.value, method = "holm", n = 4)) %>% 
+  # Add column describing model for later merge
+  mutate(analysis = "secondary - fss followup dv", 
+         model = "acquisition_cs_minus", 
+         .before = everything())
 ```
+
+#### Extinction CS+
+
+```{r}
+# Generate model
+sec_ext_plus_model3 <- 
+  port_data_exclusions_applied_std %>%
+  lm(
+    fss_followup_total ~ 
+      exp_extinction_cs_plus_mean_z + 
+      fss_baseline_total_z + 
+      ieso_treatment_completed_total_z,
+    data = .
+  )
+
+# Model output
+summary(sec_ext_plus_model3)
+
+# Save single row summary of model
+sec_ext_plus_model_glance3 <- 
+  glance(sec_ext_plus_model3)
+
+# Save summary data.frame of test results
+sec_ext_plus_model_tidy3 <- 
+  tidy(sec_ext_plus_model3, conf.int = T) %>% 
+  # Add column of adjusted p-values (holm correction)
+  mutate(pval.adj = p.adjust(p.value, method = "holm", n = 4)) %>% 
+  # Add column describing model for later merge
+  mutate(analysis = "secondary - fss followup dv", 
+         model = "extinction_cs_plus", 
+         .before = everything())
+```
+
+#### Combined
+```{r}
+secondary_models_tidy3 <- rbind(sec_acq_minus_model_tidy3, sec_ext_plus_model_tidy3) %>% 
+  mutate(sig_05 = if_else(p.value <= 0.05, TRUE, FALSE),
+         sig_05_adj = if_else(pval.adj <= 0.05, TRUE, FALSE),
+         term = factor(if_else(str_detect(term, "exp_"), "fc", term)),
+         iv = case_when(
+           term == "fss_baseline_total_z" ~ FALSE,
+           term == "ieso_treatment_completed_total_z" ~ FALSE,
+           TRUE ~ TRUE),
+         term = fct_rev(term))
+
+secondary_models_tidy3
+```
+
+#### Plot
+
+```{r}
+secondary_models_tidy3 %>%
+  filter(term != "(Intercept)") %>%
+  
+  # Plot
+  ggplot(aes(
+    x = estimate,
+    y = term,
+    group = fct_rev(model),
+    colour = model,
+    alpha = iv
+  )) +
+  geom_point(aes(shape = sig_05_adj),
+             size = 2,
+             position = position_dodge(width = .3)) +
+  
+  geom_errorbar(
+    aes(xmin = conf.low, xmax = conf.high),
+    position = position_dodge(width = .3),
+    width = 0
+  ) +
+  
+  scale_x_continuous(limits = c(-25, 25), breaks = round(seq(-25, 25, by = 5),1)) +
+  
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  
+  # Colour/shape settings
+  scale_color_manual(values = c("#811D1C", "#153860"),
+                     labels = c("Acquisition CS-", "Extinction CS+")) +
+  scale_shape_manual(values = c(1, 16),
+                     labels = c("p > 0.05", "p <= 0.05")) +
+  scale_alpha_discrete(range = c(0.5, 1),
+                       labels = c("Covariate", "Explanatory")) +
+  
+  # Labels
+  scale_y_discrete(
+    labels = c(
+      "ieso_treatment_completed_total_z" = "Number of treatment sessions",
+      "fss_baseline_total_z" = "Pre-treatment FSS score",
+      "fc" = "Fear conditioning predictor"
+    )
+  ) +
+  labs(
+    title = "Secondary analyses:
+    \nInfluence of fear conditioning on one-month follow-up FSS score",
+    subtitle = "\nOutcome: follow-up FSS scores
+    \nModel 1: mean acquisition CS- expectancy
+    \nModel 2: mean extinction CS+ expectancy",
+    caption = paste0("Intercepts",
+      "\nModel 1 = ",
+      round(sec_acq_minus_model2$coefficients[1], digits = 2),
+      "\nModel 2 = ",
+      round(sec_ext_plus_model2$coefficients[1], digits = 2)
+    ),
+    x = "Standardised beta coefficients",
+    y = element_blank(),
+    shape = "Significance",
+    color = "Model",
+    alpha = "Variable type"
+  ) +
+  
+  # Theme
+  theme_minimal() +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    strip.text.x = element_blank(),
+    plot.caption = element_text(hjust = 0),
+    plot.title = element_text(size=11),
+    plot.subtitle = element_text(size=10),
+    legend.title=element_text(size=9),
+    legend.text=element_text(size=8)
+  )
+
+ggsave(here("reports", "figures", "secondary3-regression-forest-plot.png"),
+  bg = "white")
+```
+
+## Save outputs
+
+```{r}
+regression_model_coefficients <- rbind(primary_models_tidy, secondary_models_tidy1, secondary_models_tidy2, secondary_models_tidy3) 
+
+regression_model_fits <- rbind(pri_acq_minus_model_glance, 
+                               pri_ext_plus_model_glance, 
+                               sec_acq_minus_model_glance1, 
+                               sec_ext_plus_model_glance1,
+                               sec_acq_minus_model_glance2, 
+                               sec_ext_plus_model_glance2,
+                               sec_acq_minus_model_glance3, 
+                               sec_ext_plus_model_glance3) %>% 
+  mutate(
+    analysis = c(
+      "primary",
+      "primary",
+      "secondary - age and sex adjustment",
+      "secondary - age and sex adjustment",
+      "secondary - gad7 followup dv",
+      "secondary - gad7 followup dv",
+      "secondary - fss followup dv",
+      "secondary - fss followup dv"
+    ),
+    model = c(
+      "acquisition_cs_minus",
+      "extinction_cs_plus",
+      "acquisition_cs_minus",
+      "extinction_cs_plus",
+      "acquisition_cs_minus",
+      "extinction_cs_plus",
+      "acquisition_cs_minus",
+      "extinction_cs_plus"
+    ),
+    .before = everything()
+  )
+
+write_csv(regression_model_coefficients, here("reports", "tables", "regression_model_coefficients.csv"))
+write_csv(regression_model_fits, here("reports", "tables", "regression_model_fits.csv"))
+```
+
+
 
 ## Exploratory
 
@@ -620,6 +935,7 @@ port_data_subsetted %>%
 # Visualisation
 
 ## Symptom trajectories
+
 ```{r}
 data_viz_transformed <- port_data_exclusions_applied %>%
   select(
@@ -672,7 +988,8 @@ data_viz_transformed <- port_data_exclusions_applied %>%
   )
 
 data_viz_transformed %>%
-  filter(session < 12) %>%
+  filter(session < 12,
+         measure == "gad7") %>%
   ggplot(., aes(x = session, y = mean, color = measure)) +
   geom_point() +
   geom_line() +
@@ -682,9 +999,20 @@ data_viz_transformed %>%
     linetype = 0
   ) +
   theme_minimal() +
-  geom_text(aes(label = sample_size), nudge_y = .3, size = 3) +
+  geom_text(aes(label = sample_size), nudge_y = 1, size = 3) +
   scale_x_continuous(breaks = seq(0, 11, by = 1)) +
-  facet_wrap(~measure)
+  scale_y_continuous(limits = c(0, 21), breaks = seq(0, 21, by = 3)) +
+  labs(title = "Average GAD-7 score over the course of treatment",
+       x = "Treatment session",
+       y = "Average GAD-7 score",
+       caption = "Number above each point indicates sample size") +
+  scale_color_manual(values = "#153860") +
+  scale_fill_manual(values = "#153860") +
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank())
+
+ggsave(here("reports", "figures", "symptom-trajectory.png"),
+  bg = "white")
 ```
 
 ## Elephant
@@ -753,12 +1081,15 @@ elephant_plot_exclusions_applied <- elephant_long %>%
     scale_x_continuous(breaks = breaks_fun) +
     scale_y_continuous(breaks = seq(0, 10, by = 1), limits = c(1, 9))
 
+elephant_plot_exclusions_applied
+
 # Save
 ggsave(
   file = paste0(here("reports", "figures"), "/elephant-plot_exclusions-applied.png"), 
   plot = elephant_plot_exclusions_applied, 
   width = 16, 
   height = 8, 
-  units = "cm"
+  units = "cm",
+  bg = "white"
   )
 ```
