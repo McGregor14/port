@@ -153,6 +153,22 @@ demogrpaphics_table
 # gtsave(demogrpaphics_table, here("reports", "tables", "demogrpaphics_table.png"))
 ```
 
+# Diagnoses and treatment pathways
+
+```{r}
+port_data_exclusions_applied %>% 
+  group_by(ieso_diagnosis_name) %>% 
+  count() %>% 
+  arrange(desc(n))
+
+
+port_data_exclusions_applied %>% 
+  group_by(ieso_protocol_token) %>%
+  count() %>% 
+  arrange(desc(n))
+```
+
+
 
 # Explore
 
