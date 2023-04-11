@@ -978,13 +978,13 @@ data_viz_transformed <- port_data_exclusions_applied %>%
       TRUE ~ session
     )
   ) %>%
-  separate(
+  separate_wider_delim(
     session,
-    into = c("measure", "type", "x", "session"),
-    sep = c("_", "_", "_"),
-    convert = TRUE
+    names = c("measure", "type", "x", "session"),
+    delim = "_"
   ) %>%
   select(-c(type, x)) %>%
+  mutate(session = as.numeric(session)) %>% 
   group_by(measure, session) %>%
   summarise(across(
     .cols = score,
@@ -993,8 +993,7 @@ data_viz_transformed <- port_data_exclusions_applied %>%
       sd = ~ sd(.x, na.rm = TRUE),
       sample_size = ~ sum(!is.na(.x))
     ),
-    .names = "{.fn}",
-    .groups = "keep"
+    .names = "{.fn}"
   )) %>%
   ungroup() %>%
   mutate(
