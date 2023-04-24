@@ -38,6 +38,11 @@ contingency_awareness <- contingency_awareness_raw %>%
   rename_with(.fn = ~ paste0("flare_", .x),
               .cols = -participant_id)
 
+# Convert stimulus guess to factor
+contingency_awareness <- contingency_awareness %>% 
+  mutate(flare_contingency_awareness_stimulus_guess = 
+           factor(flare_contingency_awareness_stimulus_guess,
+                  levels = c("csa", "csb")))
 
 # Save data
 saveRDS(

@@ -26,7 +26,8 @@ fear_conditioning_raw <-
 
 # Clean dataset values
 fear_conditioning <- fear_conditioning_raw %>%
-  mutate(normalised_stimulus = recode(normalised_stimulus, `cs+` = "cs_plus", `cs-` = "cs_minus"))
+  mutate(normalised_stimulus =
+           recode(normalised_stimulus, `cs+` = "cs_plus", `cs-` = "cs_minus"))
 
 
 # EXPECTANCY RATINGS
@@ -175,7 +176,8 @@ number_missing_ratings <- expectancy_ratings_wide %>%
          flare_missing_exp_extinction)
 
 
-# Create dataframe with response delay info (i.e. the time it took to respond after CS is presented, should be between 3 and 8 seconds)
+# Create dataframe with response delay info (i.e. the time it took to respond
+# after CS is presented, should be between 3 and 8 seconds)
 rating_delay_info <- fear_conditioning %>%
   mutate(rating_delay_secs = as.numeric(
     difftime(response_recorded_at, trial_started_at, units = 'secs')
@@ -186,8 +188,12 @@ rating_delay_info <- fear_conditioning %>%
     flare_rating_delay_max_secs = max(rating_delay_secs, na.rm = T)
   ) %>%
   mutate(
-    flare_rating_delay_min_flag = if_else(flare_rating_delay_min_secs < 3, TRUE, FALSE),
-    flare_rating_delay_max_flag = if_else(flare_rating_delay_max_secs > 8, TRUE, FALSE)
+    flare_rating_delay_min_flag = if_else(flare_rating_delay_min_secs < 3,
+                                          TRUE,
+                                          FALSE),
+    flare_rating_delay_max_flag = if_else(flare_rating_delay_max_secs > 8,
+                                          TRUE,
+                                          FALSE)
   ) %>%
   ungroup()
 
@@ -211,7 +217,9 @@ trial_delay_info <- fear_conditioning %>%
   ) %>%
   group_by(participant_id) %>%
   summarise(flare_trial_delay_max_secs = max(trial_delay_secs, na.rm = T)) %>%
-  mutate(flare_trial_delay_flag = if_else(flare_trial_delay_max_secs > 22, TRUE, FALSE)) %>%
+  mutate(flare_trial_delay_flag = if_else(flare_trial_delay_max_secs > 22,
+                                          TRUE,
+                                          FALSE)) %>%
   ungroup()
 
 # Create dataframe with length of break
@@ -242,11 +250,14 @@ break_length_info <- fear_conditioning %>%
 timing_info <- fear_conditioning %>%
   group_by(participant_id) %>%
   summarise(
-    flare_fc_start_time = min(trial_started_at, na.rm = T),
-    flare_fc_end_time = max(trial_started_at, na.rm = T)
+    flare_fc_start_dttm = min(trial_started_at, na.rm = T),
+    flare_fc_end_dttm = max(trial_started_at, na.rm = T)
   ) %>%
   ungroup() %>%
-  mutate(flare_fc_duration_mins = difftime(flare_fc_end_time, flare_fc_start_time, units = 'mins'))
+  mutate(flare_fc_duration_mins =
+           as.numeric(
+             difftime(flare_fc_end_dttm, flare_fc_start_dttm, units = 'mins')
+           ))
 
 # Create dataframe with volume info
 volume_info <- fear_conditioning %>%
@@ -255,12 +266,17 @@ volume_info <- fear_conditioning %>%
   ungroup() %>%
   select(participant_id, phase, average_phase_volume) %>%
   distinct() %>%
-  mutate(average_phase_volume = if_else(average_phase_volume > 1, NA_real_, average_phase_volume)) %>%
+  mutate(average_phase_volume = if_else(average_phase_volume > 1,
+                                        NA_real_,
+                                        average_phase_volume)) %>%
   pivot_wider(names_from = phase,
               values_from = average_phase_volume,
               names_prefix = "flare_volume_average_") %>%
   mutate(
-    flare_volume_exclusion_50pct_acquisition = if_else(flare_volume_average_acquisition <= .5, TRUE, FALSE)
+    flare_volume_exclusion_50pct_acquisition =
+      if_else(flare_volume_average_acquisition <= .5,
+              TRUE,
+              FALSE)
   )
 
 # Create dataframe with info about headphone removals

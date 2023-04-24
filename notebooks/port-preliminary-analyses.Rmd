@@ -1,5 +1,5 @@
 ---
-title: "PORT: preliminary analyses"
+title: "PORT: primary analyses"
 author: "Thomas McGregor"
 date: "`r Sys.Date()`"
 output: html_document
@@ -34,18 +34,16 @@ library(webshot) # required for saving gt tables
 
 ```{r read in dataset, include=FALSE}
 port_data <- read_rds(here("data", "processed", "merged", "07_imputed-processed-data.Rds"))
-
-port_data_exclusions_applied <- port_data %>% 
-  filter(port_exclusion != TRUE)
 ```
 
 # Cleaning
 
 ## Subsets
-```{r}
+
+```{r create subsets}
 # Exclusions applied: all variables, filtered participants
 port_data_exclusions_applied <- port_data %>% 
-  filter(port_exclusion != TRUE)
+  filter(port_exclusion == FALSE)
 
 # Subsetted: selected variables, filtered participants
 port_data_subsetted <- port_data %>% 
@@ -86,99 +84,17 @@ port_data_exclusions_applied_std <-
   ))
 ```
 
-
-# Demographics
-```{r}
-demographics_data <- 
-  port_data_exclusions_applied %>%
-  
-  # Rename and subset variables
-  dplyr::select(age = demographics_age_at_screening,
-                sex = demographics_biological_sex,
-                n_sessions = ieso_treatment_completed_total,
-                gad7_baseline = gad7_baseline_total,
-                gad7_change = gad7_treatment_change_observed) %>%
-  group_by(sex) %>%
-  
-  # Generate summary table
-  summarise(
-    n = n(),
-    mean_age = mean(age, na.rm = TRUE),
-    mean_gad7 = mean(gad7_baseline, na.rm = TRUE),
-    mean_gad7_change = mean(gad7_change, na.rm = TRUE),
-    median_sessions = median(n_sessions, na.rm = TRUE)
-  ) %>%
-  
-  # Reshape data so that data is long with male/female columns
-  pivot_longer(cols = -sex, names_to = "variable", values_to = "value") %>% 
-  pivot_wider(names_from = "sex", values_from = "value") %>%
-  
-  # Rename values in variable column
-  mutate(variable = recode(variable,
-                           n = "n",
-                           mean_age = "Mean age",
-                           mean_gad7 = "Mean GAD-7 study baseline",
-                           mean_gad7_change = "Mean GAD-7 change",
-                           median_sessions = "Median number of sessions")) 
-
-demogrpaphics_table <- demographics_data %>% 
-  
-  # Create display table from data
-  gt() %>%  
-  cols_label(
-    variable = "",
-    female = md("**Female**"),
-    male = md("**Male**")
-  ) %>% 
-  tab_header(title = "PORT Study Demographics") %>% 
-  fmt_number(columns = where(is.numeric),
-             decimals = 2) %>% 
-  tab_options(table.font.size = px(11)) %>%
-  opt_table_font(
-    font = list(
-      google_font(name = "Merriweather"),
-      "Cochin", "Serif"
-    )
-  ) %>% 
-  
-  # Format n and median rows to have 1 decimal place 
-  fmt(columns = c(female, male),
-      rows = which(variable %in% c("n", "Median number of sessions")), 
-      fns = function(x) { 
-        formatC(as.numeric(x), digits = 0, format = "f")
-      } )
-
-demogrpaphics_table
-
-# gtsave(demogrpaphics_table, here("reports", "tables", "demogrpaphics_table.png"))
-```
-
-# Diagnoses and treatment pathways
-
-```{r}
-port_data_exclusions_applied %>% 
-  group_by(ieso_diagnosis_name) %>% 
-  count() %>% 
-  arrange(desc(n))
-
-
-port_data_exclusions_applied %>% 
-  group_by(ieso_protocol_token) %>%
-  count() %>% 
-  arrange(desc(n))
-```
-
-
-
 # Explore
 
 ## Visualise missing data
+
 ```{r}
 port_data_subsetted %>%  
 vis_miss()
 ```
 
 ## Skew & kurtosis
+
 ```{r}
 descr(port_data_subsetted)
 ```
@@ -186,6 +102,7 @@ descr(port_data_subsetted)
 ## Correlations
 
 ### Acquisition CS- x GAD-7 at last session
+
 ```{r}
 # Partial correlation
 pcor.test(
@@ -289,6 +206,7 @@ pri_ext_plus_model_tidy <-
 ```
 
 ### Combined
+
 ```{r}
 primary_models_tidy <- rbind(pri_acq_minus_model_tidy, pri_ext_plus_model_tidy) %>% 
   mutate(sig_05 = if_else(p.value <= 0.05, TRUE, FALSE),
@@ -456,6 +374,7 @@ sec_ext_plus_model_tidy1 <-
 ```
 
 #### Combined
+
 ```{r}
 secondary_models_tidy1 <-
   rbind(sec_acq_minus_model_tidy1, sec_ext_plus_model_tidy1) %>%
@@ -636,6 +555,7 @@ sec_ext_plus_model_tidy2 <-
 ```
 
 #### Combined
+
 ```{r}
 secondary_models_tidy2 <- rbind(sec_acq_minus_model_tidy2, sec_ext_plus_model_tidy2) %>% 
   mutate(sig_05 = if_else(p.value <= 0.05, TRUE, FALSE),
@@ -797,6 +717,7 @@ sec_ext_plus_model_tidy3 <-
 ```
 
 #### Combined
+
 ```{r}
 secondary_models_tidy3 <- rbind(sec_acq_minus_model_tidy3, sec_ext_plus_model_tidy3) %>% 
   mutate(sig_05 = if_else(p.value <= 0.05, TRUE, FALSE),
@@ -931,8 +852,6 @@ regression_model_fits <- rbind(pri_acq_minus_model_glance,
 write_csv(regression_model_coefficients, here("reports", "tables", "regression_model_coefficients.csv"))
 write_csv(regression_model_fits, here("reports", "tables", "regression_model_fits.csv"))
 ```
-
-
 
 ## Exploratory
 

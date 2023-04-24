@@ -35,7 +35,7 @@ processed_data_list <-
   purrr::list_modify("treatment_data_long" = NULL) %>%
   
   # Drop list elements that are empty
-  discard( ~ nrow(.x) == 0)
+  compact()
 
 # Reorder the list ready for merging
 processed_data_list <-
@@ -50,13 +50,16 @@ processed_data <- processed_data_list %>%
   reduce(full_join, by = "participant_id")
 
 # Filter out any participant that didn't complete baseline measures
-processed_data <- processed_data %>% 
+processed_data <- processed_data %>%
   filter(!is.na(baseline_date))
 
 # Reorder biological sex variable
-processed_data <- processed_data %>% 
-  relocate(demographics_biological_sex, .after = demographics_age_at_screening)
+processed_data <- processed_data %>%
+  relocate(demographics_biological_sex,
+           .after = demographics_age_at_screening_years)
 
 # Save data
-saveRDS(processed_data,
-        here("data", "processed", "merged", "05_merged-processed-data.Rds"))
+saveRDS(
+  processed_data,
+  here("data", "processed", "merged", "05_merged-processed-data.Rds")
+)

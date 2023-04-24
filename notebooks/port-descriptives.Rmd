@@ -1,0 +1,167 @@
+---
+title: "PORT: descriptives"
+author: "Thomas McGregor"
+date: "`r Sys.Date()`"
+output: html_document
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "../reports"
+    )
+  })
+---
+
+# Setup
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r load packages, include=FALSE}
+# Clear workspace
+rm(list = ls())
+
+# Load packages
+library(broom) # tidying output
+library(gt) # creating tables
+library(here) # file referencing
+library(naniar) # visualise missing data
+library(ppcor) # partial correlations
+library(summarytools) # data exploration
+library(tidyverse) # data manipulation
+library(webshot) # required for saving gt tables
+```
+
+```{r read in dataset, include=FALSE}
+port_data <- read_rds(here("data", "processed", "merged", "07_imputed-processed-data.Rds"))
+```
+
+# Cleaning
+
+## Subsets
+
+```{r create subsets}
+# Exclusions applied: all variables, filtered participants
+port_data_exclusions_applied <- port_data %>% 
+  filter(port_exclusion == FALSE)
+
+# Subsetted: selected variables, filtered participants
+port_data_subsetted <- port_data %>% 
+  filter(port_exclusion == FALSE) %>% 
+  dplyr::select(
+    ieso_treatment_completed_total,
+    demographics_age_at_screening_years,
+    demographics_biological_sex,
+    gad7_treatment_total_1,
+    gad7_treatment_total_final,
+    gad7_treatment_total_final_observed,
+    gad7_followup_total,
+    exp_acquisition_cs_minus_mean,
+    exp_extinction_cs_plus_mean,
+    fss_baseline_total,
+    fss_followup_total)
+
+# Subsetted, complete cases: selected variables, filtered participants, no missing data
+port_data_subsetted_complete_cases <- na.omit(port_data_subsetted)
+```
+
+# Demographics
+
+```{r}
+demographics_data <-
+  port_data_exclusions_applied %>%
+  
+  # Create followup change variable
+  mutate(gad7_followup_change = gad7_followup_total - gad7_treatment_total_final) %>%
+  
+  # Rename and subset variables
+  dplyr::select(
+    age = demographics_age_at_screening_years,
+    sex = demographics_biological_sex,
+    n_sessions = ieso_treatment_completed_total,
+    gad7_baseline = gad7_baseline_total,
+    gad7_treatment_change = gad7_treatment_change_observed,
+    gad7_followup_change
+  ) %>%
+  
+  # Generate summary table
+  summarise(
+    n = n(),
+    n_male = sum(sex == "male"),
+    mean_age_years = mean(age, na.rm = TRUE),
+    sd_age_years = sd(age, na.rm = TRUE),
+    mean_gad7_baseline = mean(gad7_baseline, na.rm = TRUE),
+    sd_gad7_baseline = sd(gad7_baseline, na.rm = TRUE),
+    mean_gad7_treatment_change = mean(gad7_treatment_change, na.rm = TRUE),
+    sd_gad7_treatment_change = sd(gad7_treatment_change, na.rm = TRUE),
+    mean_gad7_followup_change = mean(gad7_followup_change, na.rm = TRUE),
+    sd_gad7_followup_change = sd(gad7_followup_change, na.rm = TRUE),
+    mean_n_sessions = mean(n_sessions, na.rm = TRUE),
+    sd_n_sessions = sd(n_sessions, na.rm = TRUE),
+    median_n_sessions = median(n_sessions, na.rm = TRUE),
+    min_n_sessions = min(n_sessions, na.rm = TRUE),
+    max_n_sessions = max(n_sessions, na.rm = TRUE)
+  ) %>%
+  
+  # Reshape data so that data is long with male/female columns
+  pivot_longer(cols = everything(),
+               names_to = "variable",
+               values_to = "value") %>%
+  
+  # Rename values in variable column
+  mutate(
+    variable = recode(
+      variable,
+      n = "n",
+      mean_age = "Mean age",
+      mean_gad7 = "Mean GAD-7 study baseline",
+      mean_gad7_change = "Mean GAD-7 change",
+      median_sessions = "Median number of sessions"
+    )
+  )
+
+demogrpaphics_table <- demographics_data %>%
+  
+  # Create display table from data
+  gt() %>%
+  cols_label(
+    variable = "",
+    female = md("**Female**"),
+    male = md("**Male**")
+  ) %>%
+  tab_header(title = "PORT Study Demographics") %>%
+  fmt_number(columns = where(is.numeric),
+             decimals = 2) %>%
+  tab_options(table.font.size = px(11)) %>%
+  opt_table_font(font = list(google_font(name = "Merriweather"),
+                             "Cochin", "Serif")) %>%
+  
+  # Format n and median rows to have 1 decimal place
+  fmt(
+    columns = c(female, male),
+    rows = which(variable %in% c("n", "Median number of sessions")),
+    fns = function(x) {
+      formatC(as.numeric(x), digits = 0, format = "f")
+    }
+  )
+
+demogrpaphics_table
+
+# gtsave(demogrpaphics_table, here("reports", "tables", "demogrpaphics_table.png"))
+```
+
+# Diagnoses and treatment pathways
+
+```{r}
+port_data_exclusions_applied %>% 
+  group_by(ieso_diagnosis_name) %>% 
+  count() %>% 
+  arrange(desc(n))
+
+
+port_data_exclusions_applied %>% 
+  group_by(ieso_protocol_token) %>%
+  count() %>% 
+  arrange(desc(n))
+```
+

@@ -16,7 +16,8 @@ flare_rds_files <- dir_ls(flare_data_path, regexp = "\\.Rds$")
 flare_data_list <- flare_rds_files %>%
   map(~ read_rds(.))
 
-# Remove the pathname, duplicate prefix, and filetype from the names of the list elements
+# Remove the pathname, duplicate prefix, and filetype from the names of the 
+# list elements
 flare_data_names <- flare_data_list %>%
   names() %>%
   str_remove_all(., paste0(flare_data_path, "/")) %>%

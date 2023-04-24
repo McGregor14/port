@@ -42,7 +42,7 @@ other_data <- other_data %>%
     
     # Age at screening
     demographics_age_at_screening_years =
-      date_of_birth %--% screening_date / years(1),
+      as.integer(floor(date_of_birth %--% screening_date / years(1))),
     
     # Followup time since therapy
     # Time between last therapy session and the followup survey

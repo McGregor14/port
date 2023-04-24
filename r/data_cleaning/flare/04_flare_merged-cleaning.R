@@ -72,7 +72,8 @@ flare_data <- flare_data %>%
 
 # Print the number of exclusions
 flare_data %>%
-  filter(!is.na(flare_started_at)) %>% # Drop participants that didn't do FLARe
+  # Drop participants that didn't do FLARe
+  filter(!is.na(flare_started_at_dttm)) %>%
   count(flare_exclusion_port)
 
 

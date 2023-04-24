@@ -42,15 +42,6 @@ participants <- participants_raw %>%
 # Generate derived variables
 participants <- participants %>%
   mutate(
-    flare_created_date = date(flare_created_at),
-    flare_created_hour = hour(flare_created_at),
-    
-    flare_started_date = date(flare_started_at),
-    flare_started_hour = hour(flare_started_at),
-    
-    flare_finished_date = date(flare_finished_at),
-    flare_finished_hour = hour(flare_finished_at),
-    
     flare_completion_duration_mins = as.double(difftime(
       flare_finished_at, flare_started_at, units = "mins"
     )),
@@ -68,6 +59,14 @@ participants <- participants %>%
       true = TRUE,
       false = FALSE
     )
+  )
+
+# Rename variables
+participants <- participants %>%
+  rename(
+    flare_created_at_dttm = flare_created_at,
+    flare_started_at_dttm = flare_started_at,
+    flare_finished_at_dttm = flare_finished_at
   )
 
 # Save data
