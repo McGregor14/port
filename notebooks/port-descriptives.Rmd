@@ -68,114 +68,78 @@ port_data_subsetted_complete_cases <- na.omit(port_data_subsetted)
 
 # Demographics
 
-```{r}
- demographics_data <- port_data_exclusions_applied %>%
+```{r demographics table}
+demographics_data <-
+  port_data_exclusions_applied %>%
   
-  # Create followup change variable
-  mutate(gad7_followup_change = gad7_followup_total - gad7_treatment_total_final) %>%
+  mutate(
+    # Create followup change variable
+    gad7_followup_change =
+           gad7_followup_total - gad7_treatment_total_final,
+    
+    # Capitalise categories for sex variable
+    demographics_biological_sex =
+      factor(case_match(demographics_biological_sex,
+                        "female" ~ "Female",
+                        "male" ~ "Male"))) %>%
   
-  # Rename and subset variables
-  transmute(
-    Age = demographics_age_at_screening_years,
-    `Sex at birth` = factor(case_match(demographics_biological_sex,
-                                "female" ~ "Female",
-                                "male" ~ "Male")),
-    `Sessions` = ieso_treatment_completed_total,
-    `GAD-7 baseline` = gad7_baseline_total,
-    `GAD-7 treatment change` = gad7_treatment_change_observed,
-    `GAD-7 follow-up change` = gad7_followup_change
-  ) %>% tbl_summary() %>% 
-  modify_header(label = "**Variable**") %>% 
-  bold_labels() %>% 
+  # Select variables
+  select(
+    demographics_age_at_screening_years,
+    demographics_biological_sex,
+    ieso_treatment_completed_total,
+    gad7_baseline_total,
+    gad7_treatment_change_observed,
+    gad7_followup_change
+  )
+
+# Create gt summary table
+demographics_table <-
+  demographics_data %>%
+  tbl_summary(
+    
+    label = list(
+      demographics_age_at_screening_years ~ "Age (years)",
+      demographics_biological_sex ~ "Sex assigned at birth",
+      ieso_treatment_completed_total ~ "Treatment sessions completed",
+      gad7_baseline_total ~ "GAD-7 baseline",
+      gad7_treatment_change_observed ~ "GAD-7 treatment change",
+      gad7_followup_change ~ "GAD-7 follow-up change"
+    ),
+    
+    statistic = list(
+      demographics_age_at_screening_years ~ "{mean} ({sd})",
+      ieso_treatment_completed_total ~ "{mean} ({sd})",
+      gad7_baseline_total ~ "{mean} ({sd})",
+      gad7_treatment_change_observed ~ "{mean} ({sd})",
+      gad7_followup_change ~ "{mean} ({sd})"
+    ),
+    
+    digits = list(
+      demographics_age_at_screening_years ~ 2,
+      demographics_biological_sex ~ 0,
+      ieso_treatment_completed_total ~ 2,
+      gad7_baseline_total ~ 2,
+      gad7_treatment_change_observed ~ 2,
+      gad7_followup_change ~ 2
+    ),
+    
+    missing_text = "Missing"
+    
+  ) %>%
+  modify_header(label = "**Variable**") %>%
+  bold_labels() %>%
   as_gt() %>%
   gt::tab_options(table.font.names = "Arial",
                   table.font.size = 11)
 
-demographics_data
-```
+# Print demographics display table
+demographics_table
 
-
-```{r}
-demographics_data <-
-  port_data_exclusions_applied %>%
-  
-  # Create followup change variable
-  mutate(gad7_followup_change = gad7_followup_total - gad7_treatment_total_final) %>%
-  
-  # Rename and subset variables
-  dplyr::select(
-    age = demographics_age_at_screening_years,
-    sex = demographics_biological_sex,
-    n_sessions = ieso_treatment_completed_total,
-    gad7_baseline = gad7_baseline_total,
-    gad7_treatment_change = gad7_treatment_change_observed,
-    gad7_followup_change
-  ) %>%
-  
-  # Generate summary table
-  summarise(
-    n = n(),
-    n_male = sum(sex == "male"),
-    mean_age_years = mean(age, na.rm = TRUE),
-    sd_age_years = sd(age, na.rm = TRUE),
-    mean_gad7_baseline = mean(gad7_baseline, na.rm = TRUE),
-    sd_gad7_baseline = sd(gad7_baseline, na.rm = TRUE),
-    mean_gad7_treatment_change = mean(gad7_treatment_change, na.rm = TRUE),
-    sd_gad7_treatment_change = sd(gad7_treatment_change, na.rm = TRUE),
-    mean_gad7_followup_change = mean(gad7_followup_change, na.rm = TRUE),
-    sd_gad7_followup_change = sd(gad7_followup_change, na.rm = TRUE),
-    mean_n_sessions = mean(n_sessions, na.rm = TRUE),
-    sd_n_sessions = sd(n_sessions, na.rm = TRUE),
-    median_n_sessions = median(n_sessions, na.rm = TRUE),
-    min_n_sessions = min(n_sessions, na.rm = TRUE),
-    max_n_sessions = max(n_sessions, na.rm = TRUE)
-  ) %>%
-  
-  # Reshape data so that data is long with male/female columns
-  pivot_longer(cols = everything(),
-               names_to = "variable",
-               values_to = "value") %>%
-  
-  # Rename values in variable column
-  mutate(
-    variable = recode(
-      variable,
-      n = "n",
-      mean_age = "Mean age",
-      mean_gad7 = "Mean GAD-7 study baseline",
-      mean_gad7_change = "Mean GAD-7 change",
-      median_sessions = "Median number of sessions"
-    )
-  )
-
-demogrpaphics_table <- demographics_data %>%
-  
-  # Create display table from data
-  gt() %>%
-  cols_label(
-    variable = "",
-    female = md("**Female**"),
-    male = md("**Male**")
-  ) %>%
-  tab_header(title = "PORT Study Demographics") %>%
-  fmt_number(columns = where(is.numeric),
-             decimals = 2) %>%
-  tab_options(table.font.size = px(11)) %>%
-  opt_table_font(font = list(google_font(name = "Merriweather"),
-                             "Cochin", "Serif")) %>%
-  
-  # Format n and median rows to have 1 decimal place
-  fmt(
-    columns = c(female, male),
-    rows = which(variable %in% c("n", "Median number of sessions")),
-    fns = function(x) {
-      formatC(as.numeric(x), digits = 0, format = "f")
-    }
-  )
-
-demogrpaphics_table
-
-# gtsave(demogrpaphics_table, here("reports", "tables", "demogrpaphics_table.png"))
+# Save table
+gtsave(demographics_table, 
+       filename = here("reports", "tables", "demographics_table.png"),
+       expand = 10)
 ```
 
 # Diagnoses and treatment pathways
@@ -193,3 +157,96 @@ port_data_exclusions_applied %>%
   arrange(desc(n))
 ```
 
+# IAPT categories
+
+```{r}
+port_data_exclusions_applied %>% 
+  select(iapt_reliable_improvement_observed, iapt_recovery_observed, iapt_rcsi_observed) %>% 
+  na.omit %>% 
+  ggplot(aes(x = iapt_reliable_improvement_observed, fill = fct_rev(as.character(iapt_recovery_observed)))) +
+  geom_bar() +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank()) +
+  scale_fill_manual(values = c("#811D1C", "#153860"))
+```
+
+
+# Symptom trajectories
+
+```{r}
+data_viz_transformed <- port_data_exclusions_applied %>%
+  select(
+    participant_id,
+    gad7_assessment_total,
+    matches("gad7_treatment_total_\\d*$"),
+    phq9_assessment_total,
+    matches("phq9_treatment_total_\\d*$")
+  ) %>%
+  pivot_longer(
+    cols = c(
+      gad7_assessment_total,
+      matches("gad7_treatment_total_\\d*$"),
+      phq9_assessment_total,
+      matches("phq9_treatment_total_\\d*$")
+    ),
+    names_to = "session",
+    values_to = "score"
+  ) %>%
+  mutate(
+    session = case_when(
+      session == "gad7_assessment_total" ~ "gad7_treatment_total_0",
+      session == "phq9_assessment_total" ~ "phq9_treatment_total_0",
+      TRUE ~ session
+    )
+  ) %>%
+  separate_wider_delim(
+    session,
+    names = c("measure", "type", "x", "session"),
+    delim = "_"
+  ) %>%
+  select(-c(type, x)) %>%
+  mutate(session = as.numeric(session)) %>% 
+  group_by(measure, session) %>%
+  summarise(across(
+    .cols = score,
+    .fns = list(
+      mean = ~ mean(.x, na.rm = TRUE),
+      sd = ~ sd(.x, na.rm = TRUE),
+      sample_size = ~ sum(!is.na(.x))
+    ),
+    .names = "{.fn}"
+  )) %>%
+  ungroup() %>%
+  mutate(
+    se = sd / sqrt(sample_size),
+    se_lower = mean - se,
+    se_upper = mean + se
+  )
+
+data_viz_transformed %>%
+  filter(session < 12,
+         measure == "gad7") %>%
+  ggplot(., aes(x = session, y = mean, color = measure)) +
+  geom_point() +
+  geom_line() +
+  geom_ribbon(
+    aes(ymin = se_lower, ymax = se_upper, fill = measure),
+    alpha = 0.1,
+    linetype = 0
+  ) +
+  theme_minimal() +
+  geom_text(aes(label = sample_size), nudge_y = 1, size = 3) +
+  scale_x_continuous(breaks = seq(0, 11, by = 1)) +
+  scale_y_continuous(limits = c(0, 21), breaks = seq(0, 21, by = 3)) +
+  labs(title = "Average GAD-7 score over the course of treatment",
+       x = "Treatment session",
+       y = "Average GAD-7 score",
+       caption = "Number above each point indicates sample size") +
+  scale_color_manual(values = "#153860") +
+  scale_fill_manual(values = "#153860") +
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank())
+
+ggsave(here("reports", "figures", "symptom-trajectory.png"),
+  bg = "white")
+```
