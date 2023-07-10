@@ -1,5 +1,5 @@
 ---
-title: "PORT: primary analyses"
+title: "PORT analyses"
 author: "Thomas McGregor"
 date: "`r Sys.Date()`"
 output: html_document
@@ -11,9 +11,9 @@ knit: (function(input, ...) {
   })
 ---
 
-# Setup
-
 ```{r setup, include=FALSE}
+# Default to preventing code, but not the results from appearing in the finished 
+# file
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
@@ -32,23 +32,22 @@ library(tidyverse) # data manipulation
 library(webshot) # required for saving gt tables
 ```
 
-```{r read in dataset, include=FALSE}
+```{r read data, include=FALSE}
+# Read in master dataset
 port_data <- read_rds(here("data", "processed", "merged", "07_imputed-processed-data.Rds"))
 ```
 
-# Cleaning
+```{r subset}
+# Create subsets
 
-## Subsets
-
-```{r create subsets}
-# Exclusions applied: all variables, filtered participants
+# Exclusions applied: all variables, exclusions applied
 port_data_exclusions_applied <- port_data %>% 
   filter(port_exclusion == FALSE)
 
-# Subsetted: selected variables, filtered participants
+# Subsetted: selected variables, exclusions applied
 port_data_subsetted <- port_data %>% 
   filter(port_exclusion == FALSE) %>% 
-  dplyr::select(
+  select(
     ieso_treatment_completed_total,
     demographics_age_at_screening_years,
     demographics_biological_sex,
@@ -61,13 +60,13 @@ port_data_subsetted <- port_data %>%
     fss_baseline_total,
     fss_followup_total)
 
-# Subsetted, complete cases: selected variables, filtered participants, no missing data
+# Subsetted, complete cases: selected variables, exclusions applied, no missing 
+# data
 port_data_subsetted_complete_cases <- na.omit(port_data_subsetted)
 ```
 
-## Standardising
-
-```{r}
+```{r standardising}
+# Standardise (z-score) all continuous variables included in analyses
 port_data_exclusions_applied_std <- 
   port_data_exclusions_applied %>%
   mutate(across(
@@ -88,40 +87,57 @@ port_data_exclusions_applied_std <-
 
 ## Visualise missing data
 
-```{r}
+-   Should not be any missing data for variables derived from GLAD (i.e. age at
+screening & biological sex)
+-   Same goes for fear conditioning variables as missing data should be imputed
+(i.e. acquisition CS- and extinction CS+)
+
+```{r visualise missing data, warning=FALSE}
 port_data_subsetted %>%  
 vis_miss()
 ```
 
 ## Skew & kurtosis
 
-```{r}
-descr(port_data_subsetted)
+Skewness and Kurtosis values all range between +/- 1.
+
+```{r describe data}
+port_data_subsetted %>% 
+  # Remove non-numberical variables to avoid warnings
+  select(-demographics_biological_sex) %>% 
+  descr()
 ```
 
 ## Correlations
 
 ### Acquisition CS- x GAD-7 at last session
 
-```{r}
+#### Partial correlation
+```{r acq correlation gad7}
 # Partial correlation
-pcor.test(
+partial_correlation <- pcor.test(
   port_data_subsetted_complete_cases$gad7_treatment_total_final_observed,
   port_data_subsetted_complete_cases$exp_acquisition_cs_minus_mean,
   port_data_subsetted_complete_cases$gad7_treatment_total_1,
   method="pearson"
 )
 
+print(partial_correlation)
+```
+
+#### Scatterplot
+```{r acq scatterplot gad7}
 # Scatterplot
 port_data_subsetted %>% 
   ggplot(aes(x = exp_acquisition_cs_minus_mean, y = gad7_treatment_total_final_observed)) +
   geom_point() + 
-  geom_smooth(method=lm)
+  geom_smooth(formula = y ~ x, method = "lm")
 ```
 
 ### Extinction CS+ x GAD-7 at last session
 
-```{r}
+#### Partial correlation
+```{r ext correlation gad7}
 # Partial correlation
 pcor.test(
   port_data_subsetted_complete_cases$gad7_treatment_total_final_observed,
@@ -129,21 +145,28 @@ pcor.test(
   port_data_subsetted_complete_cases$gad7_treatment_total_1,
   method="pearson"
 )
+```
 
+#### Scatterplot
+```{r ext scatterplot gad7}
 # Scatterplot
 port_data_subsetted %>% 
   ggplot(aes(x = exp_extinction_cs_plus_mean, y = gad7_treatment_total_final_observed)) +
   geom_point() + 
-  geom_smooth(method=lm)
+  geom_smooth(formula = y ~ x, method = "lm")
 ```
 
 # Analyses
 
 ## Primary - GAD-7 at last session
 
+Primary analyses use fear conditioning variables to predict last session GAD-7
+scores while controlling for first session GAD-7 score and number of treatment 
+sessions completed. 
+
 ### Acquisition CS-
 
-```{r}
+```{r primary acq}
 # Generate model
 pri_acq_minus_model <- 
   port_data_exclusions_applied_std %>%
@@ -162,7 +185,7 @@ summary(pri_acq_minus_model)
 pri_acq_minus_model_glance <- 
   glance(pri_acq_minus_model)
 
-# Save summary data.frame of test results
+# Save summary dataframe of test results
 pri_acq_minus_model_tidy <- 
   tidy(pri_acq_minus_model, conf.int = T) %>% 
   # Add column of adjusted p-values (holm correction)
@@ -175,7 +198,7 @@ pri_acq_minus_model_tidy <-
 
 ### Extinction CS+
 
-```{r}
+```{r primary ext}
 # Generate model
 pri_ext_plus_model <- 
   port_data_exclusions_applied_std %>%
@@ -194,7 +217,7 @@ summary(pri_ext_plus_model)
 pri_ext_plus_model_glance <- 
   glance(pri_ext_plus_model)
 
-# Save summary data.frame of test results
+# Save summary dataframe of test results
 pri_ext_plus_model_tidy <- 
   tidy(pri_ext_plus_model, conf.int = T) %>% 
   # Add column of adjusted p-values (holm correction)
@@ -205,25 +228,26 @@ pri_ext_plus_model_tidy <-
          .before = everything())
 ```
 
-### Combined
-
-```{r}
-primary_models_tidy <- rbind(pri_acq_minus_model_tidy, pri_ext_plus_model_tidy) %>% 
-  mutate(sig_05 = if_else(p.value <= 0.05, TRUE, FALSE),
-         sig_05_adj = if_else(pval.adj <= 0.05, TRUE, FALSE),
-         term = factor(if_else(str_detect(term, "exp_"), "fc", term)),
-         iv = case_when(
-           term == "gad7_treatment_total_1_z" ~ FALSE,
-           term == "ieso_treatment_completed_total_z" ~ FALSE,
-           TRUE ~ TRUE),
-         term = fct_rev(term))
-
-primary_models_tidy
-```
-
 ### Plot
 
-```{r}
+```{r primary combine dataframes}
+# Combine tidied dataframes for potential plotting and tables
+primary_models_tidy <-
+  rbind(pri_acq_minus_model_tidy, pri_ext_plus_model_tidy) %>%
+  mutate(
+    sig_05 = if_else(p.value <= 0.05, TRUE, FALSE),
+    sig_05_adj = if_else(pval.adj <= 0.05, TRUE, FALSE),
+    term = factor(if_else(str_detect(term, "exp_"), "fc", term)),
+    iv = case_when(
+      term == "gad7_treatment_total_1_z" ~ FALSE,
+      term == "ieso_treatment_completed_total_z" ~ FALSE,
+      TRUE ~ TRUE
+    ),
+    term = fct_rev(term)
+  )
+```
+
+```{r primary plot}
 primary_models_tidy %>%
   filter(term != "(Intercept)") %>%
   
@@ -299,10 +323,12 @@ ggsave(here("reports", "figures", "primary-regression-forest-plot.png"),
 ## Secondary
 
 ### Age/Sex adjustment
+The first set of secondary analyses repeats the same models as the primary 
+analyses, except age and sex are controlled for (included as covariates).
 
 #### Acquisition CS-
 
-```{r}
+```{r secondary age/sex acq}
 # Generate model
 sec_acq_minus_model1 <- 
   port_data_exclusions_applied_std %>%
@@ -323,7 +349,7 @@ summary(sec_acq_minus_model1)
 sec_acq_minus_model_glance1 <- 
   glance(sec_acq_minus_model1)
 
-# Save summary data.frame of test results
+# Save summary dataframe of test results
 sec_acq_minus_model_tidy1 <- 
   tidy(sec_acq_minus_model1, conf.int = T) %>% 
   # Add column of adjusted p-values (holm correction)
@@ -336,7 +362,7 @@ sec_acq_minus_model_tidy1 <-
 
 #### Extinction CS+
 
-```{r}
+```{r secondary age/sex ext}
 # Generate model
 sec_ext_plus_model1 <- 
   port_data_exclusions_applied_std %>%
@@ -357,7 +383,7 @@ summary(sec_ext_plus_model1)
 sec_ext_plus_model_glance1 <- 
   glance(sec_ext_plus_model1)
 
-# Save summary data.frame of test results
+# Save summary dataframe of test results
 sec_ext_plus_model_tidy1 <- 
   tidy(sec_ext_plus_model1, conf.int = T) %>% 
   # Add column of adjusted p-values (holm correction)
@@ -368,9 +394,10 @@ sec_ext_plus_model_tidy1 <-
          .before = everything())
 ```
 
-#### Combined
+#### Plot
 
-```{r}
+```{r secondary age/sex combine dataframes}
+# Combine tidied dataframes for potential plotting and tables
 secondary_models_tidy1 <-
   rbind(sec_acq_minus_model_tidy1, sec_ext_plus_model_tidy1) %>%
   mutate(
@@ -396,14 +423,9 @@ secondary_models_tidy1 <-
       )
     )
   )
-
-secondary_models_tidy1
 ```
 
-#### Plot
-
-```{r}
-
+```{r secondary age/sex plot}
 secondary_models_tidy1 %>%
   filter(term != "(Intercept)") %>%
   
@@ -479,10 +501,13 @@ ggsave(here("reports", "figures", "secondary1-regression-forest-plot.png"),
 ```
 
 ### GAD-7 at follow-up (DV)
+The second set of secondary analyses repeats the same models as the primary 
+analyses, except GAD-7 scores from follow-up are used as the outcome variable
+instead of GAD-7 scores from participants' final treatment session.
 
 #### Acquisition CS-
 
-```{r}
+```{r secondary followup gad acq}
 # Generate model
 sec_acq_minus_model2 <- 
   port_data_exclusions_applied_std %>%
@@ -501,7 +526,7 @@ summary(sec_acq_minus_model2)
 sec_acq_minus_model_glance2 <- 
   glance(sec_acq_minus_model2)
 
-# Save summary data.frame of test results
+# Save summary dataframe of test results
 sec_acq_minus_model_tidy2 <- 
   tidy(sec_acq_minus_model2, conf.int = T) %>% 
   # Add column of adjusted p-values (holm correction)
@@ -514,7 +539,7 @@ sec_acq_minus_model_tidy2 <-
 
 #### Extinction CS+
 
-```{r}
+```{r secondary followup gad ext}
 # Generate model
 sec_ext_plus_model2 <- 
   port_data_exclusions_applied_std %>%
@@ -533,7 +558,7 @@ summary(sec_ext_plus_model2)
 sec_ext_plus_model_glance2 <- 
   glance(sec_ext_plus_model2)
 
-# Save summary data.frame of test results
+# Save summary dataframe of test results
 sec_ext_plus_model_tidy2 <- 
   tidy(sec_ext_plus_model2, conf.int = T) %>% 
   # Add column of adjusted p-values (holm correction)
@@ -544,9 +569,9 @@ sec_ext_plus_model_tidy2 <-
          .before = everything())
 ```
 
-#### Combined
+#### Plot
 
-```{r}
+```{r secondary followup gad combine dataframes}
 secondary_models_tidy2 <- rbind(sec_acq_minus_model_tidy2, sec_ext_plus_model_tidy2) %>% 
   mutate(sig_05 = if_else(p.value <= 0.05, TRUE, FALSE),
          sig_05_adj = if_else(pval.adj <= 0.05, TRUE, FALSE),
@@ -556,13 +581,9 @@ secondary_models_tidy2 <- rbind(sec_acq_minus_model_tidy2, sec_ext_plus_model_ti
            term == "ieso_treatment_completed_total_z" ~ FALSE,
            TRUE ~ TRUE),
          term = fct_rev(term))
-
-secondary_models_tidy2
 ```
 
-#### Plot
-
-```{r}
+```{r secondary followup gad plot}
 secondary_models_tidy2 %>%
   filter(term != "(Intercept)") %>%
   
@@ -636,10 +657,15 @@ ggsave(here("reports", "figures", "secondary2-regression-forest-plot.png"),
 ```
 
 ### FSS scores at follow-up
+The third set of secondary analyses repeats the same models as the primary 
+analyses, except FSS scores from follow-up are used as the outcome variable
+instead of GAD-7 scores from participants' final treatment session and FSS
+scores at baseline are controlled for instead of first treatment session GAD-7 
+scores.
 
 #### Acquisition CS-
 
-```{r}
+```{r secondary fss acq}
 # Generate model
 sec_acq_minus_model3 <- 
   port_data_exclusions_applied_std %>%
@@ -658,7 +684,7 @@ summary(sec_acq_minus_model3)
 sec_acq_minus_model_glance3 <- 
   glance(sec_acq_minus_model3)
 
-# Save summary data.frame of test results
+# Save summary dataframe of test results
 sec_acq_minus_model_tidy3 <- 
   tidy(sec_acq_minus_model3, conf.int = T) %>% 
   # Add column of adjusted p-values (holm correction)
@@ -671,7 +697,7 @@ sec_acq_minus_model_tidy3 <-
 
 #### Extinction CS+
 
-```{r}
+```{r secondary fss ext}
 # Generate model
 sec_ext_plus_model3 <- 
   port_data_exclusions_applied_std %>%
@@ -690,7 +716,7 @@ summary(sec_ext_plus_model3)
 sec_ext_plus_model_glance3 <- 
   glance(sec_ext_plus_model3)
 
-# Save summary data.frame of test results
+# Save summary dataframe of test results
 sec_ext_plus_model_tidy3 <- 
   tidy(sec_ext_plus_model3, conf.int = T) %>% 
   # Add column of adjusted p-values (holm correction)
@@ -701,9 +727,9 @@ sec_ext_plus_model_tidy3 <-
          .before = everything())
 ```
 
-#### Combined
+#### Plot
 
-```{r}
+```{r secondary fss combine dataframes}
 secondary_models_tidy3 <- rbind(sec_acq_minus_model_tidy3, sec_ext_plus_model_tidy3) %>% 
   mutate(sig_05 = if_else(p.value <= 0.05, TRUE, FALSE),
          sig_05_adj = if_else(pval.adj <= 0.05, TRUE, FALSE),
@@ -717,9 +743,7 @@ secondary_models_tidy3 <- rbind(sec_acq_minus_model_tidy3, sec_ext_plus_model_ti
 secondary_models_tidy3
 ```
 
-#### Plot
-
-```{r}
+```{r secondary fss plot}
 secondary_models_tidy3 %>%
   filter(term != "(Intercept)") %>%
   
@@ -792,19 +816,40 @@ ggsave(here("reports", "figures", "secondary3-regression-forest-plot.png"),
   bg = "white")
 ```
 
+## Exploratory
+
+### Discrimination scores (IV)
+
+### Affective ratings (IV)
+
+### Non-fear conditioning (IVs)
+
+### Depression (covariate)
+
+### Low GAD-7 excluded
+
+### Non-completers excluded
+
 ## Save outputs
 
-```{r}
-regression_model_coefficients <- rbind(primary_models_tidy, secondary_models_tidy1, secondary_models_tidy2, secondary_models_tidy3) 
+```{r save regression tables}
+regression_model_coefficients <- rbind(
+  primary_models_tidy,
+  secondary_models_tidy1,
+  secondary_models_tidy2,
+  secondary_models_tidy3
+)
 
-regression_model_fits <- rbind(pri_acq_minus_model_glance, 
-                               pri_ext_plus_model_glance, 
-                               sec_acq_minus_model_glance1, 
-                               sec_ext_plus_model_glance1,
-                               sec_acq_minus_model_glance2, 
-                               sec_ext_plus_model_glance2,
-                               sec_acq_minus_model_glance3, 
-                               sec_ext_plus_model_glance3) %>% 
+regression_model_fits <- rbind(
+  pri_acq_minus_model_glance,
+  pri_ext_plus_model_glance,
+  sec_acq_minus_model_glance1,
+  sec_ext_plus_model_glance1,
+  sec_acq_minus_model_glance2,
+  sec_ext_plus_model_glance2,
+  sec_acq_minus_model_glance3,
+  sec_ext_plus_model_glance3
+) %>%
   mutate(
     analysis = c(
       "primary",
@@ -829,29 +874,19 @@ regression_model_fits <- rbind(pri_acq_minus_model_glance,
     .before = everything()
   )
 
-write_csv(regression_model_coefficients, here("reports", "tables", "regression_model_coefficients.csv"))
-write_csv(regression_model_fits, here("reports", "tables", "regression_model_fits.csv"))
+write_csv(
+  regression_model_coefficients,
+  here("reports", "tables", "regression_model_coefficients.csv")
+)
+write_csv(regression_model_fits,
+          here("reports", "tables", "regression_model_fits.csv"))
 ```
-
-## Exploratory
-
-### Discrimination scores (IV)
-
-### Affective ratings (IV)
-
-### Non-fear conditioning (IVs)
-
-### Depression (covariate)
-
-### Low GAD-7 excluded
-
-### Non-completers excluded
 
 # Visualisation
 
 ## Elephant
 
-```{r Elephant wrangling, include=FALSE}
+```{r elephant wrangling, include=FALSE}
 # Create a list of expectancy rating trial variables
 elephant_long <- port_data_exclusions_applied %>% 
   select(matches("^exp_.*\\d$")) %>%
@@ -885,7 +920,7 @@ breaks_fun <- function(x) {
 }
 ```
 
-```{r}
+```{r elephant plot}
 elephant_plot_exclusions_applied <- elephant_long %>% 
   ggplot(aes(x = Trial, y = mean, color = Stimulus)) +
   geom_point() +

@@ -1,0 +1,201 @@
+---
+title: "PORT: interpretation biases variance"
+author: "Thomas McGregor"
+date: "`r Sys.Date()`"
+output: html_document
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "../reports"
+    )
+  })
+---
+
+# Setup
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r load packages, include=FALSE}
+# Clear workspace
+rm(list = ls())
+
+# Load packages
+library(broom) # tidying output
+library(corrr) # creating correlation matrices & heatmaps
+library(gt) # creating tables
+library(gtsummary) # creating tables
+library(here) # file referencing
+library(naniar) # visualise missing data
+library(ppcor) # partial correlations
+library(summarytools) # data exploration
+library(tidyverse) # data manipulation
+library(webshot) # required for saving gt tables
+```
+
+```{r read in dataset, include=FALSE}
+port_data <- read_rds(here("data", "processed", "merged", "07_imputed-processed-data.Rds"))
+```
+
+# Cleaning
+
+## Subsets
+
+```{r create subsets}
+# Exclusions applied: all variables, filtered participants
+port_data_exclusions_applied <- port_data %>% 
+  filter(port_exclusion == FALSE)
+
+# Subsetted: selected variables
+port_data_subsetted <- port_data %>% 
+  select(
+    participant_id,
+    port_exclusion,
+    
+    gad7_screening_total,
+    gad7_baseline_total,
+    gad7_treatment_total_final,
+    gad7_followup_total,
+    
+    phq9_screening_total,
+    phq9_baseline_total,
+    phq9_treatment_total_final,
+    phq9_followup_total,
+    
+    wsas_screening_total,
+    wsas_baseline_total,
+    wsas_treatment_total_final,
+    wsas_followup_total,
+    
+    stai_baseline_trait_total,
+    fss_baseline_total,
+    pmh_baseline_mean,
+    pswq_baseline_total,
+    asi_baseline_total,
+    cbas_baseline_behavioural_social,
+    cbas_baseline_behavioural_nonsocial,
+    cbas_baseline_cognitive_social,
+    cbas_baseline_cognitive_nonsocial,
+    eacs_midapp_total,
+    ius12_midapp_total,
+    bas_midapp_drive,
+    bas_midapp_fun_seeking,
+    bas_midapp_reward_responsiveness,
+    bis_midapp_total,
+    epq_r_midapp_nscale
+  )
+    
+
+# Subsetted, complete cases: selected variables, filtered participants, no missing data
+port_data_subsetted_complete_cases <- na.omit(port_data_subsetted)
+```
+
+# Brief
+
+Colette and I are just discussing the design of the study in the new grant and mulling on the **impact of selecting participants with GAD7 \>=8 for variance in worry, interpretation biases etc**.
+
+In order to get a sense of this I wondered if one of you could **pull out means and SDs for worry, anxiety sensitivity, EACS, CBAS and SST (if it has been coded/cleaned)** so we can see how much variance there is in this type of selected sample. It would also be useful to see the **correlations between all of these variables and GAD7 scores** so we can see if the reduced variance has any impact on associations we'd expect to see.
+
+## List of measures
+
+-   GAD 7
+
+-   PHQ9
+
+-   WSAS
+
+-   STAI-T
+
+-   FSS
+
+-   PMH-Scale
+
+-   PSWQ
+
+-   ASI
+
+-   CBAS
+
+-   EACS
+
+-   IUS-12
+
+-   BIS/BAS
+
+-   EPQ-R Nscale
+
+## Notes
+
+-   SST is not clean and therefore not available for analyses
+
+# GAD-7 scores over time
+
+Graphic illustrating that over time (screening to baseline) and after treatment
+a greater number of participants fell below the IAPT GAD-7 cut-off for anxiety
+(>= 8).
+
+Also, from a quick look, at screening there seems to be a few more participants
+that were eventually excluded that fell below 8 on the GAD-7. However, it's only
+around 20 participants, so I will keep them in.
+
+I will produce descriptives and run correlations on the baseline timepoint as it
+is closest to the measurement of interpretation biases. But it is worth noting 
+that not all participants are 8 and above by this point.
+
+```{r gad score plot, warning=FALSE}
+port_data_subsetted %>% 
+  select(participant_id, contains("gad7"), port_exclusion) %>% 
+  pivot_longer(contains("gad7"), names_to = "variable", values_to = "score") %>%
+  mutate(variable = factor(variable, levels = c("gad7_screening_total", "gad7_baseline_total", "gad7_treatment_total_final", "gad7_followup_total"))) %>% 
+  ggplot(aes(x = variable, y = score, colour = port_exclusion)) +
+  geom_point(alpha = 0.4, position = "jitter") +
+  geom_hline(yintercept = 8, color = "red") +
+  stat_summary(
+    geom = "point",
+    fun = "mean",
+    size = 5,
+    shape = 4
+  )
+```
+
+# Means and standard deviations
+
+```{r}
+port_data_subsetted %>% 
+  select(contains("baseline"), contains("midapp")) %>% 
+  summarise(
+    across(
+    .cols = everything(),
+    .fns = list(
+      mean = ~ mean(.x, na.rm = TRUE),
+      sd = ~ sd(.x, na.rm = TRUE),
+      n = ~ sum(!is.na(.x))
+    ),
+    .names = "{.col}_{.fn}")) %>% 
+  pivot_longer(everything()) %>% 
+  separate_wider_regex(name, c(Measure = ".*", "_", var2 = ".*")) %>% 
+  pivot_wider(names_from = var2, values_from = value) %>% 
+  rename(Mean = mean, SD = sd) %>% 
+  mutate(Measure = str_replace_all(str_remove(Measure, "_baseline|_midapp"), "_", " ")) %>% 
+  mutate(across(.cols = c(Mean, SD), .fns = ~round(., 2))) %>% 
+  gt()
+```
+
+# Correlations
+
+```{r}
+port_data_subsetted %>% 
+  select(contains("baseline"), contains("midapp")) %>% 
+  correlate() %>%
+  autoplot(triangular = "lower") +
+  geom_text(aes(label=round(r, digits=2)), size=2)
+
+ggsave(here("reports", "figures", "baseline-biases-heat-map.pdf"), width = 45, height = 35, units = "cm")
+```
+
+
+
+
+
+

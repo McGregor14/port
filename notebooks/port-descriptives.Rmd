@@ -170,6 +170,16 @@ port_data_exclusions_applied %>%
   scale_fill_manual(values = c("#811D1C", "#153860"))
 ```
 
+## Fear conditioning
+```{r}
+port_data_exclusions_applied %>% 
+  group_by(iapt_rcsi_observed) %>% 
+  summarise(n = n(),
+            mean_acq_plus = mean(exp_acquisition_cs_plus_mean, na.rm = TRUE),
+            mean_acq_minus = mean(exp_acquisition_cs_minus_mean, na.rm = TRUE),
+            mean_ext_plus = mean(exp_extinction_cs_plus_mean, na.rm = TRUE),
+            mean_ext_minus = mean(exp_extinction_cs_minus_mean, na.rm = TRUE))
+```
 
 # Symptom trajectories
 
@@ -250,3 +260,5 @@ data_viz_transformed %>%
 ggsave(here("reports", "figures", "symptom-trajectory.png"),
   bg = "white")
 ```
+
+# Interpretation biases
