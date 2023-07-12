@@ -79,6 +79,14 @@ cbas_data <- cbas_data %>%
         cbas_baseline_29,
         cbas_baseline_31
       )
+    ),
+    
+    # CBAS total
+    cbas_baseline_total = rowSums(
+      select(
+        .,
+        -participant_id
+      )
     )
     
   )

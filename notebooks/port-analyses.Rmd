@@ -82,7 +82,11 @@ port_data_exclusions_applied_std <-
       aff_break_cs_plus_mean,
       aff_break_cs_minus_mean,
       aff_post_cs_plus_mean,
-      aff_post_cs_minus_mean
+      aff_post_cs_minus_mean,
+      cbas_baseline_total,
+      eacs_midapp_total,
+      asi_baseline_total,
+      phq9_treatment_total_1
     ),
     .fns = ~ c(scale(.x, scale = TRUE, center = TRUE)),
     .names = "{col}_z"
@@ -170,7 +174,7 @@ port_data_subsetted %>%
 
 ### GAD-7 at last session {.tabset}
 
-Primary analyses use fear conditioning variables to predict last session GAD-7 scores while controlling for first session GAD-7 score and number of treatment sessions completed.
+Primary analyses use fear conditioning expectancy ratings to predict last session GAD-7 scores while controlling for first session GAD-7 score and number of treatment sessions completed.
 
 #### Acquisition CS-
 
@@ -256,7 +260,7 @@ primary_models_tidy <-
 ```
 
 ```{r plot function}
-forrest_plot <-
+forest_plot <-
   function(data,
            x,
            y,
@@ -269,7 +273,11 @@ forrest_plot <-
            bar_dodge,
            x_axis_low,
            x_axis_high,
-           x_axis_break) {
+           x_axis_break,
+           predictor_label_1 = "Acquisition CS-",
+           predictor_label_2 = "Extinction CS+",
+           predictor_label_3 = is.null,
+           predictor_label_4 = is.null) {
     
     # Initialise plot
     ggplot(data, 
@@ -300,8 +308,8 @@ forrest_plot <-
       
       # Colour/shape settings
       scale_color_manual(
-        values = c("#811D1C", "#153860"),
-        labels = c("Acquisition CS-", "Extinction CS+")
+        values = c("#811D1C", "#153860", "#FF4E00", "#55C1FF"),
+        labels = c(predictor_label_1, predictor_label_2, predictor_label_3, predictor_label_4)
       ) +
       
       scale_shape_manual(values = c(1, 16),
@@ -339,7 +347,7 @@ primary_models_tidy %>%
   filter(term != "(Intercept)") %>%
   
   # Plot
-  forrest_plot(data = .,
+  forest_plot(data = .,
            x = estimate,
            y = term,
            group = model,
@@ -483,7 +491,7 @@ secondary_models_tidy1 %>%
   filter(term != "(Intercept)") %>%
   
   # Plot
-  forrest_plot(data = .,
+  forest_plot(data = .,
            x = estimate,
            y = term,
            group = model,
@@ -607,7 +615,7 @@ secondary_models_tidy2 %>%
   filter(term != "(Intercept)") %>%
   
   # Plot
-    forrest_plot(data = .,
+    forest_plot(data = .,
            x = estimate,
            y = term,
            group = model,
@@ -731,7 +739,7 @@ secondary_models_tidy3 %>%
   filter(term != "(Intercept)") %>%
   
   # Plot
-  forrest_plot(data = .,
+  forest_plot(data = .,
            x = estimate,
            y = term,
            group = model,
@@ -768,6 +776,8 @@ suppressMessages(ggsave(here("reports", "figures", "secondary3-regression-forest
 ## Exploratory {.tabset}
 
 ### Discrimination scores (IV) {.tabset}
+
+The first set of exploratory analyses use US-expectancy discrimination (CS+ minus CS-) scores to predict last session GAD-7 scores while controlling for first session GAD-7 score and number of treatment sessions completed.
 
 #### Acquisition
 ```{r exploratory acq differential}
@@ -855,7 +865,7 @@ exploratory_models_tidy1 %>%
   filter(term != "(Intercept)") %>%
   
   # Plot
-  forrest_plot(data = .,
+  forest_plot(data = .,
            x = estimate,
            y = term,
            group = model,
@@ -867,7 +877,9 @@ exploratory_models_tidy1 %>%
            bar_dodge = 0.4,
            x_axis_low = -5, 
            x_axis_high = 5,
-           x_axis_break = 1) +
+           x_axis_break = 1,
+           predictor_label_1 = "Acquisition Differential",
+           predictor_label_2 = "Extinction Differential") +
   
   # Labels
   scale_y_discrete(
@@ -891,6 +903,8 @@ suppressMessages(ggsave(here("reports", "figures", "exploratory1-regression-fore
 
 ### Affective ratings (IV) {.tabset}
 
+The second set of exploratory analyses use affective ratings to predict last session GAD-7 scores while controlling for first session GAD-7 score and number of treatment sessions completed.
+
 #### Post-acquisition CS+
 ```{r exploratory post-acq cs+}
 # Generate model
@@ -912,7 +926,7 @@ expl_acq_cs_plus_model_glance <-
   glance(expl_acq_cs_plus_model)
 
 # Save summary dataframe of test results
-expl_acq_diff_model_tidy <- 
+expl_acq_cs_plus_model_tidy <- 
   tidy(expl_acq_cs_plus_model, conf.int = T) %>% 
   # Add column of adjusted p-values (holm correction)
   mutate(pval.adj = p.adjust(p.value, method = "holm", n = 4)) %>% 
@@ -1017,14 +1031,15 @@ expl_ext_cs_minus_model_tidy <-
 
 #### Plot
 
-```{r exploratory differentials combine dataframes}
+```{r exploratory affective ratings combine dataframes}
 # Combine tidied dataframes for potential plotting and tables
-exploratory_models_tidy1 <-
-  rbind(expl_acq_diff_model_tidy, expl_ext_diff_model_tidy) %>%
+exploratory_models_tidy2 <-
+  rbind(expl_acq_cs_plus_model_tidy, expl_acq_cs_minus_model_tidy,
+        expl_ext_cs_plus_model_tidy, expl_ext_cs_minus_model_tidy) %>%
   mutate(
     sig_05 = if_else(p.value <= 0.05, TRUE, FALSE),
     sig_05_adj = if_else(pval.adj <= 0.05, TRUE, FALSE),
-    term = factor(if_else(str_detect(term, "exp_"), "fc", term)),
+    term = factor(if_else(str_detect(term, "aff_"), "fc", term)),
     iv = case_when(
       term == "gad7_treatment_total_1_z" ~ FALSE,
       term == "ieso_treatment_completed_total_z" ~ FALSE,
@@ -1034,12 +1049,318 @@ exploratory_models_tidy1 <-
   )
 ```
 
-```{r exploratory differentials plot, warning=FALSE}
-exploratory_models_tidy1 %>%
+```{r exploratory affective ratings plot, warning=FALSE}
+exploratory_models_tidy2 %>%
   filter(term != "(Intercept)") %>%
   
   # Plot
-  forrest_plot(data = .,
+  forest_plot(data = .,
+           x = estimate,
+           y = term,
+           group = model,
+           colour = model,
+           alpha = iv,
+           point_shape = sig_05_adj,
+           error_low = conf.low,
+           error_high = conf.high,
+           bar_dodge = 0.4,
+           x_axis_low = -10, 
+           x_axis_high = 10,
+           x_axis_break = 1,
+           predictor_label_1 = "Post-acquisition CS+",
+           predictor_label_2 = "Post-acquisition CS-",
+           predictor_label_3 = "Post-extinction CS+",
+           predictor_label_4 = "Post-extinction CS-") +
+  
+  # Labels
+  scale_y_discrete(
+    labels = c(
+      "ieso_treatment_completed_total_z" = "Number of treatment sessions",
+      "gad7_treatment_total_1_z" = "First session GAD-7 score",
+      "fc" = "Fear conditioning predictor"
+    )
+  ) +
+  labs(
+    caption = paste0("Intercepts",
+      "\nModel 1 = ",
+      round(expl_acq_cs_plus_model$coefficients[1], digits = 2),
+      "\nModel 2 = ",
+      round(expl_acq_cs_minus_model$coefficients[1], digits = 2),
+      "\nModel 3 = ",
+      round(expl_ext_cs_plus_model$coefficients[1], digits = 2),
+      "\nModel 4 = ",
+      round(expl_ext_cs_minus_model$coefficients[1], digits = 2)
+    ))
+
+suppressMessages(ggsave(here("reports", "figures", "exploratory2-regression-forest-plot.png"),
+  bg = "white"))
+```
+
+### Non-fear conditioning (IVs) {.tabset}
+
+The third set of exploratory analyses uses anxiety-related variables to predict last session GAD-7 scores while controlling for first session GAD-7 score and number of treatment sessions completed.
+
+#### ASI
+```{r exploratory asi}
+# Generate model
+expl_asi_model <- 
+  port_data_exclusions_applied_std %>%
+  lm(
+    gad7_treatment_total_final_observed ~ 
+      asi_baseline_total_z + 
+      gad7_treatment_total_1_z + 
+      ieso_treatment_completed_total_z,
+    data = .
+  )
+
+# Model output
+summary(expl_asi_model)
+
+# Save single row summary of model
+expl_asi_model_glance <- 
+  glance(expl_asi_model)
+
+# Save summary dataframe of test results
+expl_asi_model_tidy <- 
+  tidy(expl_asi_model, conf.int = T) %>% 
+  # Add column of adjusted p-values (holm correction)
+  mutate(pval.adj = p.adjust(p.value, method = "holm", n = 4)) %>% 
+  # Add column describing model for later merge
+  mutate(analysis = "exploratory", 
+         model = "asi", 
+         .before = everything())
+```
+
+#### CBAS
+```{r exploratory cbas}
+# Generate model
+expl_cbas_model <- 
+  port_data_exclusions_applied_std %>%
+  lm(
+    gad7_treatment_total_final_observed ~ 
+      cbas_baseline_total_z + 
+      gad7_treatment_total_1_z + 
+      ieso_treatment_completed_total_z,
+    data = .
+  )
+
+# Model output
+summary(expl_cbas_model)
+
+# Save single row summary of model
+expl_cbas_model_glance <- 
+  glance(expl_cbas_model)
+
+# Save summary dataframe of test results
+expl_cbas_model_tidy <- 
+  tidy(expl_cbas_model, conf.int = T) %>% 
+  # Add column of adjusted p-values (holm correction)
+  mutate(pval.adj = p.adjust(p.value, method = "holm", n = 4)) %>% 
+  # Add column describing model for later merge
+  mutate(analysis = "exploratory", 
+         model = "cbas", 
+         .before = everything())
+```
+
+#### eACS
+```{r exploratory eacs}
+# Generate model
+expl_eacs_model <- 
+  port_data_exclusions_applied_std %>%
+  lm(
+    gad7_treatment_total_final_observed ~ 
+      eacs_midapp_total_z + 
+      gad7_treatment_total_1_z + 
+      ieso_treatment_completed_total_z,
+    data = .
+  )
+
+# Model output
+summary(expl_eacs_model)
+
+# Save single row summary of model
+expl_eacs_model_glance <- 
+  glance(expl_eacs_model)
+
+# Save summary dataframe of test results
+expl_eacs_model_tidy <- 
+  tidy(expl_eacs_model, conf.int = T) %>% 
+  # Add column of adjusted p-values (holm correction)
+  mutate(pval.adj = p.adjust(p.value, method = "holm", n = 4)) %>% 
+  # Add column describing model for later merge
+  mutate(analysis = "exploratory", 
+         model = "eacs", 
+         .before = everything())
+```
+
+#### Plot
+
+```{r exploratory non-fc combine dataframes}
+# Combine tidied dataframes for potential plotting and tables
+exploratory_models_tidy3 <-
+  rbind(expl_asi_model_tidy, expl_cbas_model_tidy, expl_eacs_model_tidy) %>%
+  mutate(
+    sig_05 = if_else(p.value <= 0.05, TRUE, FALSE),
+    sig_05_adj = if_else(pval.adj <= 0.05, TRUE, FALSE),
+    term = factor(if_else(str_detect(term, "asi|cbas|eacs"), "predictor", term)),
+    iv = case_when(
+      term == "gad7_treatment_total_1_z" ~ FALSE,
+      term == "ieso_treatment_completed_total_z" ~ FALSE,
+      TRUE ~ TRUE
+    )
+  )
+
+exploratory_models_tidy3
+```
+
+```{r exploratory non-fc plot, warning=FALSE}
+exploratory_models_tidy3 %>%
+  filter(term != "(Intercept)") %>%
+  
+  # Plot
+  forest_plot(data = .,
+           x = estimate,
+           y = term,
+           group = model,
+           colour = model,
+           alpha = iv,
+           point_shape = sig_05_adj,
+           error_low = conf.low,
+           error_high = conf.high,
+           bar_dodge = 0.4,
+           x_axis_low = -5, 
+           x_axis_high = 5,
+           x_axis_break = 1,
+           predictor_label_1 = "ASI",
+           predictor_label_2 = "CBAS",
+           predictor_label_3 = "eACS") +
+  
+  # Labels
+  scale_y_discrete(
+    labels = c(
+      "ieso_treatment_completed_total_z" = "Number of treatment sessions",
+      "gad7_treatment_total_1_z" = "First session GAD-7 score",
+      "predictor" = "Predictor"
+    )
+  ) +
+  labs(
+    caption = paste0("Intercepts",
+      "\nModel 1 = ",
+      round(expl_asi_model$coefficients[1], digits = 2),
+      "\nModel 2 = ",
+      round(expl_cbas_model$coefficients[1], digits = 2),
+      "\nModel 3 = ",
+      round(expl_eacs_model$coefficients[1], digits = 2)
+    ))
+
+suppressMessages(ggsave(here("reports", "figures", "exploratory3-regression-forest-plot.png"),
+  bg = "white"))
+```
+
+### Depression (covariate) {.tabset}
+
+The fourth set of exploratory analyses repeats the primary analyses while additionally adjusting for depression symptoms.
+
+#### Acquisition CS-
+
+```{r exploratory acq}
+# Generate model
+expl_acq_minus_dep_model <- 
+  port_data_exclusions_applied_std %>%
+  lm(
+    gad7_treatment_total_final_observed ~ 
+      exp_acquisition_cs_minus_mean_z + 
+      gad7_treatment_total_1_z + 
+      ieso_treatment_completed_total_z +
+      phq9_treatment_total_1_z,
+    data = .
+  )
+
+# Model output
+summary(expl_acq_minus_dep_model)
+
+# Save single row summary of model
+expl_acq_minus_dep_model_glance <- 
+  glance(expl_acq_minus_dep_model)
+
+# Save summary dataframe of test results
+expl_acq_minus_dep_model_tidy <- 
+  tidy(expl_acq_minus_dep_model, conf.int = T) %>% 
+  # Add column of adjusted p-values (holm correction)
+  mutate(pval.adj = p.adjust(p.value, method = "holm", n = 5)) %>% 
+  # Add column describing model for later merge
+  mutate(analysis = "exploratory", 
+         model = "acquisition_cs_minus", 
+         .before = everything())
+```
+
+#### Extinction CS+
+
+```{r exploratory ext}
+# Generate model
+expl_ext_plus_dep_model <- 
+  port_data_exclusions_applied_std %>%
+  lm(
+    gad7_treatment_total_final_observed ~ 
+      exp_extinction_cs_plus_mean_z + 
+      gad7_treatment_total_1_z + 
+      ieso_treatment_completed_total_z +
+      phq9_treatment_total_1_z,
+    data = .
+  )
+
+# Model output
+summary(expl_ext_plus_dep_model)
+
+# Save single row summary of model
+expl_ext_plus_dep_model_glance <- 
+  glance(expl_ext_plus_dep_model)
+
+# Save summary dataframe of test results
+expl_ext_plus_dep_model_tidy <- 
+  tidy(expl_ext_plus_dep_model, conf.int = T) %>% 
+  # Add column of adjusted p-values (holm correction)
+  mutate(pval.adj = p.adjust(p.value, method = "holm", n = 5)) %>% 
+  # Add column describing model for later merge
+  mutate(analysis = "exploratory", 
+         model = "extinction_cs_plus", 
+         .before = everything())
+```
+
+#### Plot
+
+```{r exploratory depression control combine dataframes}
+# Combine tidied dataframes for potential plotting and tables
+exploratory_models_tidy4 <-
+  rbind(expl_acq_minus_dep_model_tidy, expl_ext_plus_dep_model_tidy) %>%
+  mutate(
+    sig_05 = if_else(p.value <= 0.05, TRUE, FALSE),
+    sig_05_adj = if_else(pval.adj <= 0.05, TRUE, FALSE),
+    term = factor(if_else(str_detect(term, "exp_"), "fc", term)),
+    iv = case_when(
+      term == "gad7_treatment_total_1_z" ~ FALSE,
+      term == "ieso_treatment_completed_total_z" ~ FALSE,
+      term == "phq9_treatment_total_1_z" ~ FALSE,
+    ),
+    term = factor(
+      term,
+      level = c(
+        "(Intercept)",
+        "ieso_treatment_completed_total_z",
+        "gad7_treatment_total_1_z",
+        "phq9_treatment_total_1_z",
+        "fc"
+      )
+    )
+  )
+```
+
+```{r exploratory depression control plot, warning=FALSE}
+exploratory_models_tidy4 %>%
+  filter(term != "(Intercept)") %>%
+  
+  # Plot
+  forest_plot(data = .,
            x = estimate,
            y = term,
            group = model,
@@ -1058,24 +1379,22 @@ exploratory_models_tidy1 %>%
     labels = c(
       "ieso_treatment_completed_total_z" = "Number of treatment sessions",
       "gad7_treatment_total_1_z" = "First session GAD-7 score",
+      "phq9_treatment_total_1_z" = "First session PHQ-9 score",
       "fc" = "Fear conditioning predictor"
     )
   ) +
   labs(
     caption = paste0("Intercepts",
       "\nModel 1 = ",
-      round(expl_acq_diff_model$coefficients[1], digits = 2),
+      round(expl_acq_minus_dep_model$coefficients[1], digits = 2),
       "\nModel 2 = ",
-      round(expl_ext_diff_model$coefficients[1], digits = 2)
-    ))
+      round(expl_ext_plus_dep_model$coefficients[1], digits = 2)
+    )
+  )
 
-suppressMessages(ggsave(here("reports", "figures", "exploratory1-regression-forest-plot.png"),
+suppressMessages(ggsave(here("reports", "figures", "exploratory4-regression-forest-plot.png"),
   bg = "white"))
 ```
-
-### Non-fear conditioning (IVs) {.tabset}
-
-### Depression (covariate) {.tabset}
 
 ### Low GAD-7 excluded {.tabset}
 
@@ -1135,6 +1454,14 @@ write_csv(regression_model_fits,
           here("reports", "tables", "regression_model_fits.csv"))
 ```
 
+## Not pre-registered {.tabset}
+
+### Ratio of extinction to conditioning 
+
+### Anxiety diagnoses only
+
+### Exposure treatment only
+
 # Visualisations {.tabset}
 
 ## Elephant
@@ -1181,7 +1508,7 @@ elephant_plot_exclusions_applied <- elephant_long %>%
   geom_ribbon(aes(ymin = ci_low, ymax = ci_high, fill = Stimulus),
               linetype = 0,
               alpha = 0.3,
-              size = 0.8
+              linewidth = 0.8
   ) +
   scale_fill_manual(values = c("#811D1C", "#153860")) +
   scale_colour_manual(values = c("#811D1C", "#153860")) +
