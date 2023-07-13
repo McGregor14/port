@@ -99,6 +99,7 @@ expectancy_order <- c(
   "exp_extinction_cs_plus_18"
 )
 
+
 # Create a wide version of the expectancy ratings (one column per rating)
 expectancy_ratings_wide <- fear_conditioning %>%
   select(participant_id,
@@ -141,14 +142,93 @@ expectancy_means_differentials <-
     exp_extinction_cs_minus_mean =
       rowMeans(select(., contains(
         c("extinction", "minus")
-      ))),
-    
+      )))
+  ) %>%
+  
+  mutate(
     # Differentials
-    exp_acquisition_differential =
-      exp_acquisition_cs_plus_mean - exp_acquisition_cs_minus_mean,
-    exp_extinction_differential =
-      exp_extinction_cs_plus_mean - exp_extinction_cs_minus_mean
+    exp_acquisition_differential_1 = exp_acquisition_cs_plus_1 - exp_acquisition_cs_minus_1,
+    exp_acquisition_differential_2 = exp_acquisition_cs_plus_2 - exp_acquisition_cs_minus_2,
+    exp_acquisition_differential_3 = exp_acquisition_cs_plus_3 - exp_acquisition_cs_minus_3,
+    exp_acquisition_differential_4 = exp_acquisition_cs_plus_4 - exp_acquisition_cs_minus_4,
+    exp_acquisition_differential_5 = exp_acquisition_cs_plus_5 - exp_acquisition_cs_minus_5,
+    exp_acquisition_differential_6 = exp_acquisition_cs_plus_6 - exp_acquisition_cs_minus_6,
+    exp_acquisition_differential_7 = exp_acquisition_cs_plus_7 - exp_acquisition_cs_minus_7,
+    exp_acquisition_differential_8 = exp_acquisition_cs_plus_8 - exp_acquisition_cs_minus_8,
+    exp_acquisition_differential_9 = exp_acquisition_cs_plus_9 - exp_acquisition_cs_minus_9,
+    exp_acquisition_differential_10 = exp_acquisition_cs_plus_10 - exp_acquisition_cs_minus_10,
+    exp_acquisition_differential_11 = exp_acquisition_cs_plus_11 - exp_acquisition_cs_minus_11,
+    exp_acquisition_differential_12 = exp_acquisition_cs_plus_12 - exp_acquisition_cs_minus_12,
     
+    exp_extinction_differential_1 = exp_extinction_cs_plus_1 - exp_extinction_cs_minus_1,
+    exp_extinction_differential_2 = exp_extinction_cs_plus_2 - exp_extinction_cs_minus_2,
+    exp_extinction_differential_3 = exp_extinction_cs_plus_3 - exp_extinction_cs_minus_3,
+    exp_extinction_differential_4 = exp_extinction_cs_plus_4 - exp_extinction_cs_minus_4,
+    exp_extinction_differential_5 = exp_extinction_cs_plus_5 - exp_extinction_cs_minus_5,
+    exp_extinction_differential_6 = exp_extinction_cs_plus_6 - exp_extinction_cs_minus_6,
+    exp_extinction_differential_7 = exp_extinction_cs_plus_7 - exp_extinction_cs_minus_7,
+    exp_extinction_differential_8 = exp_extinction_cs_plus_8 - exp_extinction_cs_minus_8,
+    exp_extinction_differential_9 = exp_extinction_cs_plus_9 - exp_extinction_cs_minus_9,
+    exp_extinction_differential_10 = exp_extinction_cs_plus_10 - exp_extinction_cs_minus_10,
+    exp_extinction_differential_11 = exp_extinction_cs_plus_11 - exp_extinction_cs_minus_11,
+    exp_extinction_differential_12 = exp_extinction_cs_plus_12 - exp_extinction_cs_minus_12,
+    exp_extinction_differential_13 = exp_extinction_cs_plus_13 - exp_extinction_cs_minus_13,
+    exp_extinction_differential_14 = exp_extinction_cs_plus_14 - exp_extinction_cs_minus_14,
+    exp_extinction_differential_15 = exp_extinction_cs_plus_15 - exp_extinction_cs_minus_15,
+    exp_extinction_differential_16 = exp_extinction_cs_plus_16 - exp_extinction_cs_minus_16,
+    exp_extinction_differential_17 = exp_extinction_cs_plus_17 - exp_extinction_cs_minus_17,
+    exp_extinction_differential_18 = exp_extinction_cs_plus_18 - exp_extinction_cs_minus_18
+  ) %>%
+  mutate(
+    # Differential means
+    exp_acquisition_differential_mean = rowMeans(select(
+      .,
+      c(
+        exp_acquisition_differential_1,
+        exp_acquisition_differential_2,
+        exp_acquisition_differential_3,
+        exp_acquisition_differential_4,
+        exp_acquisition_differential_5,
+        exp_acquisition_differential_6,
+        exp_acquisition_differential_7,
+        exp_acquisition_differential_8,
+        exp_acquisition_differential_9,
+        exp_acquisition_differential_10,
+        exp_acquisition_differential_11,
+        exp_acquisition_differential_12
+      )
+    )),
+    exp_extinction_differential_mean = rowMeans(select(
+      .,
+      c(
+        exp_extinction_differential_1,
+        exp_extinction_differential_2,
+        exp_extinction_differential_3,
+        exp_extinction_differential_4,
+        exp_extinction_differential_5,
+        exp_extinction_differential_6,
+        exp_extinction_differential_7,
+        exp_extinction_differential_8,
+        exp_extinction_differential_9,
+        exp_extinction_differential_10,
+        exp_extinction_differential_11,
+        exp_extinction_differential_12,
+        exp_extinction_differential_13,
+        exp_extinction_differential_14,
+        exp_extinction_differential_15,
+        exp_extinction_differential_16,
+        exp_extinction_differential_17,
+        exp_extinction_differential_18
+      )
+    ))
+  ) %>%
+  
+  mutate(
+    # Difference in means
+    exp_acquisition_difference_in_means =
+      exp_acquisition_cs_plus_mean - exp_acquisition_cs_minus_mean,
+    exp_extinction_difference_in_means =
+      exp_extinction_cs_plus_mean - exp_extinction_cs_minus_mean
   ) %>%
   select(
     participant_id,
@@ -156,8 +236,40 @@ expectancy_means_differentials <-
     exp_acquisition_cs_minus_mean,
     exp_extinction_cs_plus_mean,
     exp_extinction_cs_minus_mean,
-    exp_acquisition_differential,
-    exp_extinction_differential
+    exp_acquisition_differential_1,
+    exp_acquisition_differential_2,
+    exp_acquisition_differential_3,
+    exp_acquisition_differential_4,
+    exp_acquisition_differential_5,
+    exp_acquisition_differential_6,
+    exp_acquisition_differential_7,
+    exp_acquisition_differential_8,
+    exp_acquisition_differential_9,
+    exp_acquisition_differential_10,
+    exp_acquisition_differential_11,
+    exp_acquisition_differential_12,
+    exp_extinction_differential_1,
+    exp_extinction_differential_2,
+    exp_extinction_differential_3,
+    exp_extinction_differential_4,
+    exp_extinction_differential_5,
+    exp_extinction_differential_6,
+    exp_extinction_differential_7,
+    exp_extinction_differential_8,
+    exp_extinction_differential_9,
+    exp_extinction_differential_10,
+    exp_extinction_differential_11,
+    exp_extinction_differential_12,
+    exp_extinction_differential_13,
+    exp_extinction_differential_14,
+    exp_extinction_differential_15,
+    exp_extinction_differential_16,
+    exp_extinction_differential_17,
+    exp_extinction_differential_18,
+    exp_acquisition_differential_mean,
+    exp_extinction_differential_mean,
+    exp_acquisition_difference_in_means,
+    exp_extinction_difference_in_means
   )
 
 # Create dataframe with missed trials info
