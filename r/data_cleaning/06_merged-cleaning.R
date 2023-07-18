@@ -18,7 +18,8 @@ port_data <-
 # Clean existing variables ------------------------------------------------
 
 # Replace missing values with FALSE for eligibility variables
-port_data <- port_data %>%
+port_data <-
+  port_data %>%
   mutate(across(
     .cols =
       c(completed_online_screening, completed_phone_screening),
@@ -31,8 +32,30 @@ port_data <- port_data %>%
 
 # Exclusions
 
+# Create screening variable
+port_data <-
+  port_data %>%
+  mutate(
+    completed_screening = if_else(
+      completed_online_screening == TRUE &
+        completed_phone_screening == TRUE,
+      TRUE,
+      FALSE
+    ),
+    .after = completed_phone_screening
+  )
+
+# Create baseline survey variable
+port_data <-
+  port_data %>%
+  mutate(baseline_survey_started = if_else(is.na(baseline_date),
+                                           FALSE,
+                                           TRUE),
+         .after = baseline_date)
+
 # Check number of participants excluded for their FLARe/Ieso data
 port_data %>%
+  filter(completed_screening == TRUE) %>%
   count(flare_exclusion_port, ieso_exclusion_port)
 
 # Create a port exclusion variable that identifies anyone excluded based on

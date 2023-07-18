@@ -35,6 +35,16 @@ library(webshot) # required for saving gt tables
 
 ```{r read in dataset, include=FALSE}
 port_data <- read_rds(here("data", "processed", "merged", "07_imputed-processed-data.Rds"))
+
+test <- read_csv("../data/processed/PORTstudy-TotalRefereedToIeso_DATA_2023-07-18_1645.csv", col_names = TRUE) %>% 
+  select(participant_id = port_id) %>%
+  filter(str_detect(participant_id, 'PORT_R_')) %>%
+  mutate(participant_id = substring(participant_id, 8))
+
+port_data <- port_data %>% 
+  mutate(
+    test_ieso_referall = if_else(participant_id %in% test$participant_id, TRUE, FALSE)
+  )
 ```
 
 # Cleaning
@@ -68,6 +78,34 @@ port_data_subsetted_complete_cases <- na.omit(port_data_subsetted)
 
 # Recruitment flow
 
+```{r}
+participant_recruitment_flow <- port_data %>% 
+  summarise(
+    completed_online_screening_n = n(),
+    completed_phone_screening_n = sum(completed_phone_screening == TRUE),
+    completed_baseline_survey_n = sum( completed_phone_screening == TRUE & baseline_survey_started == TRUE),
+    completed_flare_n = sum(completed_phone_screening == TRUE & flare_started_app == TRUE),
+    completed_baseline_survey_and_flare_n = sum(completed_phone_screening == TRUE & baseline_survey_started == TRUE & flare_started_app == TRUE),
+    )
+
+
+port_data %>% 
+  filter(completed_screening == TRUE) %>% 
+  count(!is.na(baseline_date), flare_started_app)
+
+port_data
+    
+
+completed_phone_screening_n <- port_data %>% 
+  filter(completed_phone_screening) %>% 
+  count() %>% 
+  pull()
+
+completed_phone_screening_n <- port_data %>% 
+  filter(completed_phone_screening) %>% 
+  count() %>% 
+  pull()
+```
 
 
 # Demographics
