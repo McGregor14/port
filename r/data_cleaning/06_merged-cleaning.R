@@ -15,6 +15,16 @@ port_data <-
   read_rds(here("data", "processed", "merged", "05_merged-processed-data.Rds"))
 
 
+# Clean existing variables ------------------------------------------------
+
+# Replace missing values with FALSE for eligibility variables
+port_data <- port_data %>%
+  mutate(across(
+    .cols =
+      c(completed_online_screening, completed_phone_screening),
+    .fns = ~ replace_na(., FALSE)
+  ))
+
 # Create derived variables ------------------------------------------------
 
 # Create new variables from merged dataset variables
@@ -31,7 +41,9 @@ port_data <-
   port_data %>%
   mutate(
     port_exclusion = case_when(
-      flare_exclusion_port == FALSE &
+      completed_online_screening == TRUE &
+        completed_phone_screening == TRUE &
+        flare_exclusion_port == FALSE &
         ieso_exclusion_port == FALSE
       ~ FALSE,
       TRUE ~ TRUE

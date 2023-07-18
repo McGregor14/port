@@ -49,9 +49,10 @@ processed_data_list <-
 processed_data <- processed_data_list %>%
   reduce(full_join, by = "participant_id")
 
-# Filter out any participant that didn't complete baseline measures
+# Filter out any participant that didn't complete online screening/weren't
+# eligible
 processed_data <- processed_data %>%
-  filter(!is.na(baseline_date))
+  filter(completed_online_screening == TRUE)
 
 # Reorder biological sex variable
 processed_data <- processed_data %>%

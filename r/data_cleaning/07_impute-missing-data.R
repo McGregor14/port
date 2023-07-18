@@ -89,7 +89,7 @@ expectancy_order <- c(
 # Filter out FLARe exclusions
 flare_participants <-
   port_data %>%
-  filter(flare_exclusion_port == FALSE)
+  filter(port_exclusion == FALSE)
 
 # Create long version of the FLARe trial data
 expectancy_long <-

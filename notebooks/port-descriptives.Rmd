@@ -66,6 +66,10 @@ port_data_subsetted <- port_data %>%
 port_data_subsetted_complete_cases <- na.omit(port_data_subsetted)
 ```
 
+# Recruitment flow
+
+
+
 # Demographics
 
 ```{r demographics table}

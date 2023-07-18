@@ -14,9 +14,10 @@ redcap_rds_files <- dir_ls(redcap_data_path, regexp = "\\.Rds$")
 
 # Read in all RDS files stored in the folder
 redcap_data_list <- redcap_rds_files %>%
-  map( ~ read_rds(.))
+  map(~ read_rds(.))
 
-# Remove the pathname, duplicate prefix, and filetype from the names of the list elements
+# Remove the pathname, duplicate prefix, and filetype from the names of the list
+# elements
 redcap_data_names <- redcap_data_list %>%
   names() %>%
   str_remove_all(., paste0(redcap_data_path, "/")) %>%
@@ -26,17 +27,21 @@ redcap_data_names <- redcap_data_list %>%
 names(redcap_data_list) <- redcap_data_names
 
 # Reorder the list ready for merging
-redcap_data_list <- redcap_data_list[c("other",
-                                       "asi",
-                                       "cbas",
-                                       "fss",
-                                       "gad",
-                                       "ius",
-                                       "phq",
-                                       "pmh",
-                                       "pswq",
-                                       "stai",
-                                       "wsas")]
+redcap_data_list <- redcap_data_list[c(
+  "online_eligible",
+  "phone_eligible",
+  "other",
+  "asi",
+  "cbas",
+  "fss",
+  "gad",
+  "ius",
+  "phq",
+  "pmh",
+  "pswq",
+  "stai",
+  "wsas"
+)]
 
 # Merge all elements of the list
 redcap_data <- redcap_data_list %>%
