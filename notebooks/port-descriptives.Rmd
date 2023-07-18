@@ -75,13 +75,12 @@ demographics_data <-
   mutate(
     # Create followup change variable
     gad7_followup_change =
-           gad7_followup_total - gad7_treatment_total_final,
+      gad7_followup_total - gad7_treatment_total_final,
     
     # Capitalise categories for sex variable
     demographics_biological_sex =
-      factor(case_match(demographics_biological_sex,
-                        "female" ~ "Female",
-                        "male" ~ "Male"))) %>%
+      factor(str_to_title(demographics_biological_sex))
+  ) %>%
   
   # Select variables
   select(
@@ -97,7 +96,6 @@ demographics_data <-
 demographics_table <-
   demographics_data %>%
   tbl_summary(
-    
     label = list(
       demographics_age_at_screening_years ~ "Age (years)",
       demographics_biological_sex ~ "Sex assigned at birth",
@@ -137,24 +135,57 @@ demographics_table <-
 demographics_table
 
 # Save table
-gtsave(demographics_table, 
-       filename = here("reports", "tables", "demographics_table.png"),
-       expand = 10)
+suppressMessages(gtsave(
+  demographics_table,
+  filename = here("reports", "tables", "demographics_table.png"),
+  expand = 10
+))
 ```
 
-# Diagnoses and treatment pathways
+# Diagnoses and treatment protocol
 
-```{r}
-port_data_exclusions_applied %>% 
-  group_by(ieso_diagnosis_name) %>% 
-  count() %>% 
-  arrange(desc(n))
+```{r diagnosis and treatment protocol table}
 
+diagnosis_treatment_data <-
+  port_data_exclusions_applied %>%
+  
+  # Capitalise categories and remove underscores
+  transmute(across(
+    .cols = c(ieso_diagnosis_name,
+              ieso_protocol_token),
+    .fns = ~ str_to_title(.) %>%
+      str_replace_all("_", " ") %>%
+      factor() %>%
+      fct_infreq()
+  ))
 
-port_data_exclusions_applied %>% 
-  group_by(ieso_protocol_token) %>%
-  count() %>% 
-  arrange(desc(n))
+# Create gt summary table
+diagnosis_treatment_table <-
+  diagnosis_treatment_data %>%
+  tbl_summary(
+    label = list(
+      ieso_diagnosis_name ~ "Primary diagnosis",
+      ieso_protocol_token ~ "Protocol"
+    ),
+    
+    missing_text = "Missing"
+    
+  ) %>%
+  modify_header(label = "**Variable**") %>%
+  bold_labels() %>%
+  as_gt() %>%
+  gt::tab_options(table.font.names = "Arial",
+                  table.font.size = 11)
+
+# Print demographics display table
+diagnosis_treatment_table
+
+# Save table
+suppressMessages(gtsave(
+  diagnosis_treatment_table,
+  filename = here("reports", "tables", "diagnosis_treatment_table.png"),
+  expand = 10
+))
 ```
 
 # IAPT categories

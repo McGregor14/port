@@ -1803,6 +1803,7 @@ summary(test$proportion_extinction_1_to_6_acquisition_11_to_12_difference_in_mea
 glimpse(test)
 ```
 
+### Complete cases only
 
 ### Anxiety diagnoses only
 
