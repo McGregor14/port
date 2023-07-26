@@ -16,7 +16,7 @@ redcap_raw <-
       "data",
       "raw",
       "redcap",
-      "2022-08-24_anonymised-dataset_tm.csv"
+      "2023-07-25_anonymised-dataset_tm.csv"
     ),
     col_names = TRUE,
     trim_ws = TRUE
@@ -33,12 +33,15 @@ redcap_data <- redcap_data %>%
 
 # Drop unnecessary columns
 redcap_data <- redcap_data %>%
-  select(-final_survey_2_questions_timestamp)
+  select(-c(
+    redcap_survey_identifier,
+    final_survey_2_questions_timestamp
+  ))
 
 # Clean names
 redcap_data <- redcap_data %>%
   
-  # clean_names: makes all names unique, all lower case & only consist of _, 
+  # clean_names: makes all names unique, all lower case & only consist of _,
   # numbers, and letters
   clean_names() %>%
   

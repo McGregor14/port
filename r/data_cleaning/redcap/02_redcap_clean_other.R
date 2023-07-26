@@ -42,7 +42,9 @@ other_data <- other_data %>%
     
     # Age at screening
     demographics_age_at_screening_years =
-      as.integer(floor(date_of_birth %--% screening_date / years(1))),
+      as.integer(floor(
+        date_of_birth %--% screening_date / years(1)
+      )),
     
     # Followup time since therapy
     # Time between last therapy session and the followup survey
@@ -54,6 +56,18 @@ other_data <- other_data %>%
         which(treatment_followup_time_since_therapy_days < 0),
         NA
       )
+  )
+
+# Screening & withdrawal
+other_data <- other_data %>%
+  mutate(across(
+    .cols = c(phone_eligibility_gad8,
+              phone_screen_outcome),
+    as.logical
+  )) %>% 
+  rename(
+    port_phone_eligibility = phone_eligibility_gad8,
+    port_screening_eligibility = phone_screen_outcome
   )
 
 
@@ -148,7 +162,7 @@ other_data <- other_data %>%
         )
       )),
     
-    # Lump together levels with less than 5 observations to avoid identifiable 
+    # Lump together levels with less than 5 observations to avoid identifiable
     # data
     demographics_employment = fct_lump_min(
       demographics_employment,
@@ -173,12 +187,12 @@ other_data <- other_data %>%
     demographics_ethnic_origin =
       fct_infreq(factor(
         case_when(
-          # Specify DK and PNTA first so that responses aren't recorded for 
+          # Specify DK and PNTA first so that responses aren't recorded for
           # those who don't wish them to be
           ethnic_origin_88 == 1 ~ "dont_know",
           ethnic_origin_99 == 1 ~ "prefer_not_to_answer",
           
-          # Specify mixed and other second so that ethnicity is not 
+          # Specify mixed and other second so that ethnicity is not
           # oversimplified
           ethnic_origin_2 == 1 ~ "mixed",
           ethnic_origin_6 == 1 ~ "other",
@@ -223,11 +237,11 @@ other_data <- other_data %>%
   mutate(
     # "Did you find your sessions with Ieso helpful?"
     # Question added after the start date of the study.
-    # As a result, some participants were asked this question after they had 
-    # already completed the followup survey. Responses for those participants 
-    # are recorded in the sessionhelpful_4_added variable. Use these responses 
-    # when participants are missing a response for the main variable 
-    # iesohelpful_4. This will prioritise their initial response if they 
+    # As a result, some participants were asked this question after they had
+    # already completed the followup survey. Responses for those participants
+    # are recorded in the sessionhelpful_4_added variable. Use these responses
+    # when participants are missing a response for the main variable
+    # iesohelpful_4. This will prioritise their initial response if they
     # happened to be asked the same question twice.
     treatment_followup_treatment_helpful =
       if_else(
