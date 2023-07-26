@@ -17,46 +17,33 @@ port_data <-
 
 # Clean existing variables ------------------------------------------------
 
-# Replace missing values with FALSE for eligibility variables
-port_data <-
-  port_data %>%
-  mutate(across(
-    .cols =
-      c(completed_online_screening, completed_phone_screening),
-    .fns = ~ replace_na(., FALSE)
-  ))
-
 # Create derived variables ------------------------------------------------
 
 # Create new variables from merged dataset variables
 
 # Exclusions
 
-# Create screening variable
-port_data <-
-  port_data %>%
-  mutate(
-    completed_screening = if_else(
-      completed_online_screening == TRUE &
-        completed_phone_screening == TRUE,
-      TRUE,
-      FALSE
-    ),
-    .after = completed_phone_screening
-  )
-
-# Create baseline survey variable
-port_data <-
-  port_data %>%
-  mutate(baseline_survey_started = if_else(is.na(baseline_date),
-                                           FALSE,
-                                           TRUE),
-         .after = baseline_date)
-
 # Check number of participants excluded for their FLARe/Ieso data
 port_data %>%
-  filter(completed_screening == TRUE) %>%
+  mutate(ieso_exclusion_port = if_else(is.na(ieso_exclusion_port),
+                                       TRUE,
+                                       ieso_exclusion_port)) %>%
   count(flare_exclusion_port, ieso_exclusion_port)
+
+# Check number of participants excluded for their FLARe/Ieso data
+# This time checking if they passed screening
+port_data %>%
+  mutate(ieso_exclusion_port = if_else(is.na(ieso_exclusion_port),
+                                       TRUE,
+                                       ieso_exclusion_port)) %>%
+  count(port_screening_eligibility, flare_exclusion_port, ieso_exclusion_port)
+
+# Check IDs for participants that weren't exclusions but were not eligible after
+# screening
+
+port_data %>% 
+  filter(port_screening_eligibility == FALSE) %>% 
+  pull(participant_id)
 
 # Create a port exclusion variable that identifies anyone excluded based on
 # their FLARe or Ieso data
@@ -64,10 +51,9 @@ port_data <-
   port_data %>%
   mutate(
     port_exclusion = case_when(
-      completed_online_screening == TRUE &
-        completed_phone_screening == TRUE &
-        flare_exclusion_port == FALSE &
-        ieso_exclusion_port == FALSE
+      flare_exclusion_port == FALSE &
+        ieso_exclusion_port == FALSE &
+        port_screening_eligibility == TRUE
       ~ FALSE,
       TRUE ~ TRUE
     ),

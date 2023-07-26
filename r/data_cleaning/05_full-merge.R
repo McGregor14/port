@@ -49,15 +49,14 @@ processed_data_list <-
 processed_data <- processed_data_list %>%
   reduce(full_join, by = "participant_id")
 
-# Filter out any participant that didn't complete online screening/weren't
-# eligible
-processed_data <- processed_data %>%
-  filter(completed_online_screening == TRUE)
-
 # Reorder biological sex variable
 processed_data <- processed_data %>%
   relocate(demographics_biological_sex,
            .after = demographics_age_at_screening_years)
+
+# Filter out any participant that wasn't eligible after the screening questionnaire
+processed_data <- processed_data %>%
+  filter(port_phone_eligibility == TRUE)
 
 # Save data
 saveRDS(

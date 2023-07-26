@@ -66,8 +66,8 @@ other_data <- other_data %>%
     as.logical
   )) %>% 
   rename(
-    port_phone_eligibility = phone_eligibility_gad8,
-    port_screening_eligibility = phone_screen_outcome
+    port_screening_eligibility = phone_eligibility_gad8,
+    port_phone_eligibility = phone_screen_outcome
   )
 
 
