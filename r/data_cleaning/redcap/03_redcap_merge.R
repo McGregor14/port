@@ -28,8 +28,6 @@ names(redcap_data_list) <- redcap_data_names
 
 # Reorder the list ready for merging
 redcap_data_list <- redcap_data_list[c(
-  "online_eligible",
-  "phone_eligible",
   "other",
   "asi",
   "cbas",

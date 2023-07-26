@@ -318,6 +318,7 @@ other_data <- other_data %>%
     screening_date,
     baseline_date,
     followup_date,
+    starts_with("port"),
     starts_with("demographics"),
     starts_with("treatment")
   )
