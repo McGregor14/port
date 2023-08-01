@@ -23,12 +23,38 @@ session_data <-
   # remove_empty: removes empty rows and columns
   remove_empty(which = c("rows", "cols")) %>%
   # remove_constant: removes columns where all observations are the same
-  remove_constant(na.rm = T, quiet = F) %>%
-  # Remove ieso derived columns until explanation obtained
-  select(-contains(c("sum", "count")))
+  remove_constant(na.rm = T, quiet = F) %>% 
+  # select variables of interest
+  select(participant_id,
+         ieso_date,
+         ieso_appointment_type,
+         ieso_status,
+         ieso_contact_duration,
+         ieso_phq9score,
+         ieso_gad7score,
+         ieso_wsas_score,
+         ieso_ocd_score,
+         ieso_social_phobia_inventory_score,
+         ieso_hain_score,
+         ieso_pcl5score,
+         ieso_gad_imaginal_exposure_utterances,
+         ieso_gad_imaginal_exposure_words,
+         ieso_gad_in_vivo_exposure_utterances,
+         ieso_gad_in_vivo_exposure_words,
+         ieso_gad_learning_from_exposure_utterances,
+         ieso_gad_learning_from_exposure_words)
 
 
 # Clean variables & generate derived variables ----------------------------
+
+
+## Date -------------------------------------------------------------------
+
+# Convert date variable to datetime (currently character)
+session_data <-
+  session_data %>%
+  mutate(ieso_dttm = as_datetime(ieso_date, format = "%d/%m/%Y %H:%M")) %>% 
+  select(-ieso_date)
 
 
 ## Appointment type and status --------------------------------------------
@@ -136,12 +162,12 @@ session_data_assessments <-
   # Filter out sessions that aren't assessments
   filter(ieso_appointment_type == "assessment") %>%
   
-  # Sort the dataset by participant and ID
+  # Sort the dataset by participant and date
   group_by(participant_id) %>%
-  arrange(participant_id, ieso_date, by_group = TRUE) %>%
+  arrange(participant_id, ieso_dttm, by_group = TRUE) %>%
   
   # Take the most recent assessment session for each participant
-  slice(which.max(ieso_date)) %>%
+  slice(which.max(ieso_dttm)) %>%
   ungroup()
 
 
@@ -153,7 +179,7 @@ session_data_assessments <-
 session_assessment_dttm <-
   session_data_assessments %>%
   select(participant_id,
-         ieso_assessment_dttm = ieso_date)
+         ieso_assessment_dttm = ieso_dttm)
 
 ### Assessment scores -----------------------------------------------------
 
@@ -165,7 +191,7 @@ session_assessment_scores <-
   
   # Choose relevant columns
   select(-c(
-    ieso_date,
+    ieso_dttm,
     ieso_appointment_type,
     ieso_status,
     ieso_contact_duration
@@ -297,7 +323,7 @@ session_data_treatments <-
   
   # Sort the dataset by participant and date
   group_by(participant_id) %>%
-  arrange(participant_id, ieso_date, by_group = TRUE) %>%
+  arrange(participant_id, ieso_dttm, by_group = TRUE) %>%
   
   # Add session number
   mutate(treatment_number = row_number()) %>%
@@ -306,7 +332,7 @@ session_data_treatments <-
   # Reorder variables
   select(participant_id,
          treatment_number,
-         ieso_date,
+         ieso_dttm,
          everything())
 
 
@@ -327,7 +353,7 @@ session_treatment_dates <-
   arrange(treatment_number, .by_group = TRUE) %>%
   select(participant_id,
          treatment_number,
-         ieso_date) %>%
+         ieso_dttm) %>%
   
   # Create a new column that contains eventual variable names beside first and
   # last session
@@ -341,7 +367,7 @@ session_treatment_dates <-
   # Remove treatment number and spread dates so that they appear below first/
   # last variables (i.e. widen dataset)
   select(-treatment_number) %>%
-  pivot_wider(names_from = "treatment", values_from = "ieso_date") %>%
+  pivot_wider(names_from = "treatment", values_from = "ieso_dttm") %>%
   
   # Convert dttm to dates
   mutate(
@@ -357,7 +383,7 @@ session_treatments_scores <-
   session_data_treatments %>%
   
   select(-c(
-    ieso_date,
+    ieso_dttm,
     ieso_appointment_type,
     ieso_status,
     ieso_contact_duration
