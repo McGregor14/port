@@ -23,26 +23,31 @@ session_data <-
   # remove_empty: removes empty rows and columns
   remove_empty(which = c("rows", "cols")) %>%
   # remove_constant: removes columns where all observations are the same
-  remove_constant(na.rm = T, quiet = F) %>% 
+  remove_constant(na.rm = T, quiet = F) %>%
   # select variables of interest
-  select(participant_id,
-         ieso_date,
-         ieso_appointment_type,
-         ieso_status,
-         ieso_contact_duration,
-         ieso_phq9score,
-         ieso_gad7score,
-         ieso_wsas_score,
-         ieso_ocd_score,
-         ieso_social_phobia_inventory_score,
-         ieso_hain_score,
-         ieso_pcl5score,
-         ieso_gad_imaginal_exposure_utterances,
-         ieso_gad_imaginal_exposure_words,
-         ieso_gad_in_vivo_exposure_utterances,
-         ieso_gad_in_vivo_exposure_words,
-         ieso_gad_learning_from_exposure_utterances,
-         ieso_gad_learning_from_exposure_words)
+  select(
+    participant_id,
+    ieso_date,
+    ieso_appointment_type,
+    ieso_status,
+    ieso_contact_duration,
+    ieso_phq9score,
+    ieso_gad7score,
+    ieso_wsas_score,
+    ieso_ocd_score,
+    ieso_social_phobia_inventory_score,
+    ieso_hain_score,
+    ieso_pcl5score,
+    ieso_gad_imaginal_exposure_utterances,
+    ieso_gad_imaginal_exposure_words,
+    ieso_gad_in_vivo_exposure_utterances,
+    ieso_gad_in_vivo_exposure_words,
+    ieso_gad_learning_from_exposure_utterances,
+    ieso_gad_learning_from_exposure_words
+  ) %>%
+  # Remove 'gad' from exposure variable names
+  rename_with(.fn = ~ str_remove(.x, "gad_"),
+              .cols = contains(c("words", "utterances")))
 
 
 # Clean variables & generate derived variables ----------------------------
@@ -53,7 +58,8 @@ session_data <-
 # Convert date variable to datetime (currently character)
 session_data <-
   session_data %>%
-  mutate(ieso_dttm = as_datetime(ieso_date, format = "%d/%m/%Y %H:%M")) %>% 
+  mutate(ieso_dttm = as_datetime(ieso_date, format = "%d/%m/%Y %H:%M"),
+         .after = participant_id) %>%
   select(-ieso_date)
 
 
@@ -171,15 +177,15 @@ session_data_assessments <-
   ungroup()
 
 
-### ieso_assessment_dttm --------------------------------------------------
+### ieso_assessment_date --------------------------------------------------
 
 # Create an object containing the dates for each participant's assessment, to
 # be merged with other wide datasets at a later point
 
-session_assessment_dttm <-
+session_assessment_date <-
   session_data_assessments %>%
-  select(participant_id,
-         ieso_assessment_dttm = ieso_dttm)
+  transmute(participant_id,
+            ieso_assessment_date = as_date(ieso_dttm))
 
 ### Assessment scores -----------------------------------------------------
 
@@ -296,6 +302,82 @@ session_assessment_scores <-
 # TO-DO: CHECKING WITH IESO ABOUT HOW THE SCORES ARE OBTAINED (ADDED AS ISSUE)
 
 
+#### Exposure -------------------------------------------------------------
+
+# Create variables indicating whether each type of exposure was used in
+# assessment
+session_assessment_scores <-
+  session_assessment_scores %>%
+  
+  # imaginal
+  mutate(
+    imaginal_exposure_assessment = case_when(
+      is.na(imaginal_exposure_utterances_assessment_total) &
+        is.na(imaginal_exposure_words_assessment_total) ~ NA,
+      rowSums(select(
+        .,
+        c(
+          imaginal_exposure_utterances_assessment_total,
+          imaginal_exposure_words_assessment_total
+        )
+      ), na.rm = TRUE) >= 1 ~ TRUE,
+      rowSums(select(
+        .,
+        c(
+          imaginal_exposure_utterances_assessment_total,
+          imaginal_exposure_words_assessment_total
+        )
+      ), na.rm = TRUE) < 1 ~ FALSE,
+    ),
+    .after = imaginal_exposure_words_assessment_total
+  ) %>%
+  
+  # in vivo
+  mutate(
+    in_vivo_exposure_assessment = case_when(
+      is.na(in_vivo_exposure_utterances_assessment_total) &
+        is.na(in_vivo_exposure_words_assessment_total) ~ NA,
+      rowSums(select(
+        .,
+        c(
+          in_vivo_exposure_utterances_assessment_total,
+          in_vivo_exposure_words_assessment_total
+        )
+      ), na.rm = TRUE) >= 1 ~ TRUE,
+      rowSums(select(
+        .,
+        c(
+          in_vivo_exposure_utterances_assessment_total,
+          in_vivo_exposure_words_assessment_total
+        )
+      ), na.rm = TRUE) < 1 ~ FALSE,
+    ),
+    .after = in_vivo_exposure_words_assessment_total
+  ) %>%
+  
+  # learning from
+  mutate(
+    learning_from_exposure_assessment = case_when(
+      is.na(learning_from_exposure_utterances_assessment_total) &
+        is.na(learning_from_exposure_words_assessment_total) ~ NA,
+      rowSums(select(
+        .,
+        c(
+          learning_from_exposure_utterances_assessment_total,
+          learning_from_exposure_words_assessment_total
+        )
+      ), na.rm = TRUE) >= 1 ~ TRUE,
+      rowSums(select(
+        .,
+        c(
+          learning_from_exposure_utterances_assessment_total,
+          learning_from_exposure_words_assessment_total
+        )
+      ), na.rm = TRUE) < 1 ~ FALSE,
+    ),
+    .after = learning_from_exposure_words_assessment_total
+  )
+
 #### Reorder variables ----------------------------------------------------
 session_assessment_scores <-
   session_assessment_scores %>%
@@ -304,6 +386,7 @@ session_assessment_scores <-
     starts_with("gad7"),
     starts_with("phq9"),
     starts_with("wsas"),
+    contains("exposure"),
     everything()
   )
 
@@ -547,15 +630,15 @@ final_observed_treatment_scores <-
       false = .x
     ),
     
-    # Create new columns with "_final_observed" appended to the existing column 
+    # Create new columns with "_final_observed" appended to the existing column
     # name
     .names = "{col}_final_observed"
   )) %>%
   
-  # Only keep rows from a participant's final treatment session and newly 
+  # Only keep rows from a participant's final treatment session and newly
   # created columns
-  filter(treatment_number == max(treatment_number, na.rm = TRUE)) %>% 
-  select(participant_id, ends_with("final_observed")) %>% 
+  filter(treatment_number == max(treatment_number, na.rm = TRUE)) %>%
+  select(participant_id, ends_with("final_observed")) %>%
   ungroup()
 
 
@@ -582,8 +665,8 @@ final_treatment_scores <-
     everything()
   )
 
-final_observed_treatment_scores <- 
-  final_observed_treatment_scores %>% 
+final_observed_treatment_scores <-
+  final_observed_treatment_scores %>%
   select(
     participant_id,
     starts_with("gad7"),
@@ -607,7 +690,7 @@ session_treatments_scores <-
 # Create a list of datasets to merge
 session_data_list <- list(
   session_counts,
-  session_assessment_dttm,
+  session_assessment_date,
   session_treatment_dates,
   session_assessment_scores,
   session_treatments_scores,
