@@ -378,6 +378,78 @@ session_assessment_scores <-
     .after = learning_from_exposure_words_assessment_total
   )
 
+# Create variables indicating total number of exposure words and utterances used
+# in assessment
+
+session_assessment_scores <-
+  session_assessment_scores %>%
+  
+  # exposure utterances total
+  mutate(
+    exposure_utterances_assessment_total = if_else(
+      is.na(learning_from_exposure_utterances_assessment_total) &
+        is.na(in_vivo_exposure_utterances_assessment_total) &
+        is.na(learning_from_exposure_utterances_assessment_total),
+      NA,
+      rowSums(select(
+        .,
+        c(
+          learning_from_exposure_utterances_assessment_total,
+          in_vivo_exposure_utterances_assessment_total,
+          learning_from_exposure_utterances_assessment_total
+        )
+      ))
+    ),
+    .after = learning_from_exposure_assessment
+  ) %>%
+  
+  # exposure words total
+  mutate(
+    exposure_words_assessment_total = if_else(
+      is.na(learning_from_exposure_words_assessment_total) &
+        is.na(in_vivo_exposure_words_assessment_total) &
+        is.na(learning_from_exposure_words_assessment_total),
+      NA,
+      rowSums(select(
+        .,
+        c(
+          learning_from_exposure_words_assessment_total,
+          in_vivo_exposure_words_assessment_total,
+          learning_from_exposure_words_assessment_total
+        )
+      ))
+    ),
+    .after = exposure_utterances_assessment_total
+  )
+
+# Create variable indicating whether exposure was used in assessment
+
+session_assessment_scores <-
+  session_assessment_scores %>%
+  
+  # exposure assessment
+  mutate(
+    exposure_assessment = case_when(
+      is.na(exposure_utterances_assessment_total) &
+        is.na(exposure_words_assessment_total) ~ NA,
+      rowSums(select(
+        .,
+        c(
+          exposure_utterances_assessment_total,
+          exposure_words_assessment_total
+        )
+      ), na.rm = TRUE) >= 1 ~ TRUE,
+      rowSums(select(
+        .,
+        c(
+          exposure_utterances_assessment_total,
+          exposure_words_assessment_total
+        )
+      ), na.rm = TRUE) < 1 ~ FALSE,
+    ),
+    .after = exposure_words_assessment_total
+  )
+
 #### Reorder variables ----------------------------------------------------
 session_assessment_scores <-
   session_assessment_scores %>%
@@ -479,7 +551,7 @@ session_treatments_scores <-
       str_remove_all(., "_$") %>%
       # Add "treatment_total" to the end of scores
       paste0(., "_treatment_total"),
-    .cols = contains("score")
+    .cols = contains("score") | contains("exposure")
   )
 
 
@@ -577,10 +649,207 @@ session_treatments_scores <-
   ungroup()
 
 
+#### Exposure -------------------------------------------------------------
 
-#### Final treatment scores -----------------------------------------------
+# Create variables indicating whether each type of exposure was used in
+# each treatment session
+session_treatments_scores <-
+  session_treatments_scores %>%
+  
+  # imaginal
+  mutate(
+    imaginal_exposure_treatment = case_when(
+      is.na(imaginal_exposure_utterances_treatment_total) &
+        is.na(imaginal_exposure_words_treatment_total) ~ NA,
+      rowSums(select(
+        .,
+        c(
+          imaginal_exposure_utterances_treatment_total,
+          imaginal_exposure_words_treatment_total
+        )
+      ), na.rm = TRUE) >= 1 ~ TRUE,
+      rowSums(select(
+        .,
+        c(
+          imaginal_exposure_utterances_treatment_total,
+          imaginal_exposure_words_treatment_total
+        )
+      ), na.rm = TRUE) < 1 ~ FALSE,
+    ),
+    .after = imaginal_exposure_words_treatment_total
+  ) %>%
+  
+  # in vivo
+  mutate(
+    in_vivo_exposure_treatment = case_when(
+      is.na(in_vivo_exposure_utterances_treatment_total) &
+        is.na(in_vivo_exposure_words_treatment_total) ~ NA,
+      rowSums(select(
+        .,
+        c(
+          in_vivo_exposure_utterances_treatment_total,
+          in_vivo_exposure_words_treatment_total
+        )
+      ), na.rm = TRUE) >= 1 ~ TRUE,
+      rowSums(select(
+        .,
+        c(
+          in_vivo_exposure_utterances_treatment_total,
+          in_vivo_exposure_words_treatment_total
+        )
+      ), na.rm = TRUE) < 1 ~ FALSE,
+    ),
+    .after = in_vivo_exposure_words_treatment_total
+  ) %>%
+  
+  # learning from
+  mutate(
+    learning_from_exposure_treatment = case_when(
+      is.na(learning_from_exposure_utterances_treatment_total) &
+        is.na(learning_from_exposure_words_treatment_total) ~ NA,
+      rowSums(select(
+        .,
+        c(
+          learning_from_exposure_utterances_treatment_total,
+          learning_from_exposure_words_treatment_total
+        )
+      ), na.rm = TRUE) >= 1 ~ TRUE,
+      rowSums(select(
+        .,
+        c(
+          learning_from_exposure_utterances_treatment_total,
+          learning_from_exposure_words_treatment_total
+        )
+      ), na.rm = TRUE) < 1 ~ FALSE,
+    ),
+    .after = learning_from_exposure_words_treatment_total
+  )
+
+# Create variables indicating total number of exposure words and utterances used
+# in each treatment session
+
+session_treatments_scores <-
+  session_treatments_scores %>%
+  
+  # exposure utterances total
+  mutate(
+    exposure_utterances_treatment_total = if_else(
+      is.na(learning_from_exposure_utterances_treatment_total) &
+        is.na(in_vivo_exposure_utterances_treatment_total) &
+        is.na(learning_from_exposure_utterances_treatment_total),
+      NA,
+      rowSums(select(
+        .,
+        c(
+          learning_from_exposure_utterances_treatment_total,
+          in_vivo_exposure_utterances_treatment_total,
+          learning_from_exposure_utterances_treatment_total
+        )
+      ))
+    ),
+    .after = learning_from_exposure_treatment
+  ) %>%
+  
+  # exposure words total
+  mutate(
+    exposure_words_treatment_total = if_else(
+      is.na(learning_from_exposure_words_treatment_total) &
+        is.na(in_vivo_exposure_words_treatment_total) &
+        is.na(learning_from_exposure_words_treatment_total),
+      NA,
+      rowSums(select(
+        .,
+        c(
+          learning_from_exposure_words_treatment_total,
+          in_vivo_exposure_words_treatment_total,
+          learning_from_exposure_words_treatment_total
+        )
+      ))
+    ),
+    .after = exposure_utterances_treatment_total
+  )
+
+# Create variable indicating whether exposure was used in each treatment session
+
+session_treatments_scores <-
+  session_treatments_scores %>%
+  
+  # exposure treatment
+  mutate(
+    exposure_treatment = case_when(
+      is.na(exposure_utterances_treatment_total) &
+        is.na(exposure_words_treatment_total) ~ NA,
+      rowSums(select(
+        .,
+        c(
+          exposure_utterances_treatment_total,
+          exposure_words_treatment_total
+        )
+      ), na.rm = TRUE) >= 1 ~ TRUE,
+      rowSums(select(
+        .,
+        c(
+          exposure_utterances_treatment_total,
+          exposure_words_treatment_total
+        )
+      ), na.rm = TRUE) < 1 ~ FALSE,
+    ),
+    .after = exposure_words_treatment_total
+  )
+
+# Create dataframe summarising exposure used across all treatment sessions
+
+# totals
+all_sessions_exposure_totals <-
+  session_treatments_scores %>%
+  select(participant_id,
+         treatment_number,
+         contains("exposure") & contains("total")) %>%
+  group_by(participant_id) %>%
+  summarise(across(
+    .cols = contains("total"),
+    .fns = ~ if_else(all(is.na(.x)), NA, sum(.x, na.rm = TRUE)),
+    .names = "{col}_all_sessions"
+  ),
+  .groups = "keep") %>%
+  ungroup()
+
+# included
+all_sessions_exposure_included <-
+  session_treatments_scores %>%
+  select(participant_id,
+         treatment_number,
+         contains("exposure") & !contains("total")) %>%
+  group_by(participant_id) %>%
+  summarise(across(
+    .cols = contains("exposure"),
+    .fns = ~ if_else(all(is.na(.x)), NA, any(.x == TRUE)),
+    .names = "{col}_all_sessions"
+  ),
+  .groups = "keep") %>%
+  ungroup()
+
+# proportion
+all_sessions_exposure_proportion <-
+  session_treatments_scores %>%
+  select(participant_id,
+         treatment_number,
+         contains("exposure") & !contains("total")) %>%
+  group_by(participant_id) %>%
+  summarise(across(
+    .cols = contains("exposure"),
+    .fns = ~ if_else(all(is.na(.x)), NA, mean(.x, na.rm = TRUE)),
+    .names = "{col}_prop_all_sessions"
+  ),
+  .groups = "keep") %>%
+  ungroup()
+
+
+
+### Final treatment scores ------------------------------------------------
 final_treatment_scores <-
   session_treatments_scores %>%
+  select(-contains("exposure")) %>% 
   group_by(participant_id) %>%
   filter(treatment_number == max(treatment_number)) %>%
   select(-treatment_number) %>%
@@ -588,7 +857,7 @@ final_treatment_scores <-
               .cols = -participant_id)
 
 
-#### Final observed treatment scores --------------------------------------
+### Final observed treatment scores ---------------------------------------
 
 # Last observed (non-NA value) score bought forward
 final_observed_treatment_scores <-
@@ -642,7 +911,7 @@ final_observed_treatment_scores <-
   ungroup()
 
 
-#### Reorder variables ----------------------------------------------------
+### Reorder variables -----------------------------------------------------
 
 session_treatments_scores <-
   session_treatments_scores %>%
@@ -676,14 +945,16 @@ final_observed_treatment_scores <-
   )
 
 
-#### Widen treatment scores -----------------------------------------------
+### Widen treatment scores ------------------------------------------------
 
 # Widen treatment scores for each participant, to be merged with other wide
 # datasets at a later point
 session_treatments_scores <-
   session_treatments_scores %>%
   pivot_wider(names_from = treatment_number,
-              values_from = -c(participant_id, treatment_number))
+              values_from = -c(participant_id, treatment_number)) %>% 
+  # Remove exposure variables summarising totals
+  select(-(contains("exposure") & contains("total")))
 
 # Merge wide datasets -----------------------------------------------------
 
@@ -695,7 +966,10 @@ session_data_list <- list(
   session_assessment_scores,
   session_treatments_scores,
   final_treatment_scores,
-  final_observed_treatment_scores
+  final_observed_treatment_scores,
+  all_sessions_exposure_totals,
+  all_sessions_exposure_included,
+  all_sessions_exposure_proportion
 )
 
 # Merge all elements of the list

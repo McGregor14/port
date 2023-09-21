@@ -94,10 +94,10 @@ flare_participants <-
 # Create long version of the FLARe trial data
 expectancy_long <-
   flare_participants %>%
-  # Selects expectancy rating columns (i.e. those starting with "exp" and
-  # ending with digits and aren't differentials)
+  # Selects expectancy rating columns (i.e. those starting with "exp_" and
+  # ending with digits and aren't differential variables)
   select(-contains("differential")) %>%
-  select(participant_id, matches("^exp.*\\d$")) %>%
+  select(participant_id, matches("^exp_.*\\d$")) %>%
   # Make data long with columns for phase, stimulus, and rating
   pivot_longer(
     -participant_id,
@@ -147,7 +147,7 @@ expectancy_imputed_long <-
   ungroup()
 
 # 3. If any other trial is missed, the average of the preceding and following
-# value will be used
+# value will be used for that stimulus
 expectancy_imputed_long <-
   expectancy_imputed_long %>%
   group_by(participant_id, phase, normalised_stimulus) %>%
@@ -291,6 +291,12 @@ expectancy_imputed_means_differentials <-
     exp_extinction_difference_in_means =
       exp_extinction_cs_plus_mean - exp_extinction_cs_minus_mean
   )
+
+# Round all values to 2 decimal places
+expectancy_imputed_means_differentials <- 
+  expectancy_imputed_means_differentials %>% 
+  mutate(across(.cols = where(is.numeric),
+                .fns = ~round(.x, digits = 2)))
 
 
 # Fix port_data using imputed dataset
