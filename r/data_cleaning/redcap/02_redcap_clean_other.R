@@ -22,11 +22,21 @@ other_data <-
 
 # Clean data
 
-# Dates and ages
-other_data <- other_data %>%
+# Stage completion flags:
+# Everyone in the dataset should have completed screening and baseline measures
+# to ensure consent
+other_data <- 
+  other_data %>% 
   mutate(
-    # Date that treatment finished (rename old variable)
-    treatment_finished_date = date_finished_treatment,
+    followup_complete = if_else(!is.na(final_timestamp), TRUE, FALSE)
+  )
+
+# Dates and ages
+# Note: date_finished_treatment has been dropped. More informative variables
+# exist in ieso dataset
+other_data <- 
+  other_data %>%
+  mutate(
     
     # Replace 'not completed' with NA for timestamp variables
     # Note: screening has no character observations so is automatically read-in
@@ -44,31 +54,13 @@ other_data <- other_data %>%
     demographics_age_at_screening_years =
       as.integer(floor(
         date_of_birth %--% screening_date / years(1)
-      )),
-    
-    # Followup time since therapy
-    # Time between last therapy session and the followup survey
-    treatment_followup_time_since_therapy_days =
-      treatment_finished_date %--% followup_date / days(1),
-    treatment_followup_time_since_therapy_days =
-      replace(
-        treatment_followup_time_since_therapy_days,
-        which(treatment_followup_time_since_therapy_days < 0),
-        NA
-      )
+      ))
   )
 
 # Screening & withdrawal
-other_data <- other_data %>%
-  mutate(across(
-    .cols = c(phone_eligibility_gad8,
-              phone_screen_outcome),
-    as.logical
-  )) %>% 
-  rename(
-    port_screening_eligibility = phone_eligibility_gad8,
-    port_phone_eligibility = phone_screen_outcome
-  )
+other_data <- 
+  other_data %>%
+  mutate(port_screening_eligibility = as.logical(phone_eligibility_gad8))
 
 
 # Gender:
@@ -79,7 +71,8 @@ other_data <- other_data %>%
 # -88 - Don't know
 # -99 - Prefer not to answer
 
-other_data <- other_data %>%
+other_data <- 
+  other_data %>%
   mutate(
     demographics_gender =
       fct_infreq(factor(
@@ -122,7 +115,8 @@ other_data <- other_data %>%
 # 8 - Retired
 # 9 - Other
 
-other_data <- other_data %>%
+other_data <- 
+  other_data %>%
   mutate(
     tmp_employment_other =
       case_when(
@@ -232,7 +226,8 @@ other_data <- other_data %>%
 
 
 # Treatment
-other_data <- other_data %>%
+other_data <- 
+  other_data %>%
   
   mutate(
     # "Did you find your sessions with Ieso helpful?"
@@ -312,11 +307,13 @@ other_data <- other_data %>%
   )
 
 # Remove redundant variables
-other_data <- other_data %>%
+other_data <- 
+  other_data %>%
   select(
     participant_id,
     screening_date,
     baseline_date,
+    followup_complete,
     followup_date,
     starts_with("port"),
     starts_with("demographics"),

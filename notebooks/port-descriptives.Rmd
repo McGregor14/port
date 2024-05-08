@@ -2,7 +2,16 @@
 title: "PORT: descriptives"
 author: "Thomas McGregor"
 date: "`r Sys.Date()`"
-output: html_document
+output: 
+  html_document:
+    code_folding: hide
+    df_print: paged
+    highlight: monochrome
+    number_sections: no
+    theme: flatly
+    toc: true
+    toc_float: 
+      collapsed: true
 knit: (function(input, ...) {
     rmarkdown::render(
       input,
@@ -12,39 +21,35 @@ knit: (function(input, ...) {
 ---
 
 # Setup
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
-```
-
 ```{r load packages, include=FALSE}
 # Clear workspace
 rm(list = ls())
 
 # Load packages
 library(broom) # tidying output
+library(confintr) # effect size for chisq
 library(gt) # creating tables
 library(gtsummary) # creating tables
 library(here) # file referencing
-library(naniar) # visualise missing data
+library(infer) # tidy stats
+library(naniar) # missing data
 library(ppcor) # partial correlations
 library(summarytools) # data exploration
 library(tidyverse) # data manipulation
 library(webshot) # required for saving gt tables
+
+# Source function script
+source(file = here("r", "functions.R"))
 ```
 
 ```{r read in dataset, include=FALSE}
-port_data <- read_rds(here("data", "processed", "merged", "07_imputed-processed-data.Rds"))
-
-test <- read_csv("../data/processed/PORTstudy-TotalRefereedToIeso_DATA_2023-07-18_1645.csv", col_names = TRUE) %>% 
-  select(participant_id = port_id) %>%
-  filter(str_detect(participant_id, 'PORT_R_')) %>%
-  mutate(participant_id = substring(participant_id, 8))
-
-port_data <- port_data %>% 
-  mutate(
-    test_ieso_referall = if_else(participant_id %in% test$participant_id, TRUE, FALSE)
-  )
+port_data <-
+  read_rds(here(
+    "data",
+    "processed",
+    "merged",
+    "07_imputed-processed-data.Rds"
+  ))
 ```
 
 # Cleaning
@@ -53,11 +58,18 @@ port_data <- port_data %>%
 
 ```{r create subsets}
 # Exclusions applied: all variables, filtered participants
-port_data_exclusions_applied <- port_data %>% 
+port_data_exclusions_applied <- 
+  port_data %>% 
   filter(port_exclusion == FALSE)
 
+# Completed baseline measures (for comparisons with analytical sample)
+port_completed_baseline <- 
+  port_data %>% 
+  filter(flare_completed_app == TRUE)
+
 # Subsetted: selected variables, filtered participants
-port_data_subsetted <- port_data %>% 
+port_data_subsetted <- 
+  port_data %>% 
   filter(port_exclusion == FALSE) %>% 
   dplyr::select(
     ieso_treatment_completed_total,
@@ -72,66 +84,208 @@ port_data_subsetted <- port_data %>%
     fss_baseline_total,
     fss_followup_total)
 
-# Subsetted, complete cases: selected variables, filtered participants, no missing data
-port_data_subsetted_complete_cases <- na.omit(port_data_subsetted)
+# Subsetted, complete cases: selected variables, filtered participants, no 
+# missing data
+port_data_subsetted_complete_cases <- 
+  na.omit(port_data_subsetted)
 ```
 
 # Recruitment flow
 
+## Figure 1 flow
+
 ```{r}
-participant_recruitment_flow <- port_data %>% 
+port_data %>%
+  # Filter for participants with screening eligibility = 293
+  filter(port_screening_eligibility == TRUE) %>%
+  # Summarise numbers at different stages
   summarise(
-    completed_online_screening_n = n(),
-    completed_phone_screening_n = sum(completed_phone_screening == TRUE),
-    completed_baseline_survey_n = sum( completed_phone_screening == TRUE & baseline_survey_started == TRUE),
-    completed_flare_n = sum(completed_phone_screening == TRUE & flare_started_app == TRUE),
-    completed_baseline_survey_and_flare_n = sum(completed_phone_screening == TRUE & baseline_survey_started == TRUE & flare_started_app == TRUE),
+    completed_flare_n = sum(flare_completed_app == TRUE,
+                            na.rm = TRUE),
+    not_referred_n = sum(
+      flare_completed_app == TRUE &
+        ieso_referral == FALSE &
+        flare_exclusion_port == TRUE,
+      na.rm = TRUE
+    ),
+    did_not_complete_referral_n = sum(
+      flare_completed_app == TRUE &
+        ieso_referral == FALSE &
+        flare_exclusion_port == FALSE,
+      na.rm = TRUE
+    ),
+    ieso_referral_n = sum(flare_completed_app == TRUE &
+                            ieso_referral == TRUE,
+                          na.rm = TRUE),
+    flare_exclusion_n = sum(
+      flare_completed_app == TRUE &
+        ieso_referral == TRUE &
+        flare_exclusion_port == TRUE,
+      na.rm = TRUE
+    ),
+    ieso_exclusion_n = sum(
+      flare_completed_app == TRUE &
+        ieso_referral == TRUE &
+        flare_exclusion_port == FALSE &
+        ieso_exclusion_port == TRUE,
+      na.rm = TRUE
+    ),
+    primary_analyses_n = sum(
+        port_exclusion == FALSE,
+      na.rm = TRUE
+    ),
+    completed_followup_n = sum(
+        port_exclusion == FALSE &
+      followup_complete == TRUE,
+      na.rm = TRUE
     )
+  )
+```
 
+## Results section counts
 
-port_data %>% 
-  filter(completed_screening == TRUE) %>% 
-  count(!is.na(baseline_date), flare_started_app)
-
-port_data
-    
-
-completed_phone_screening_n <- port_data %>% 
-  filter(completed_phone_screening) %>% 
-  count() %>% 
-  pull()
-
-completed_phone_screening_n <- port_data %>% 
-  filter(completed_phone_screening) %>% 
-  count() %>% 
-  pull()
+```{r}
+port_data %>%
+  filter(flare_completed_app == TRUE) %>%
+  summarise(
+    completed_flare_n = sum(flare_completed_app == TRUE,
+                            na.rm = TRUE),
+    not_flare_excluded_not_referred = sum(
+      flare_completed_app == TRUE &
+        flare_exclusion_port == FALSE &
+        ieso_referral == FALSE,
+      na.rm = TRUE
+    ),
+    flare_exclusion_not_referred_n = sum(
+      flare_completed_app == TRUE &
+        flare_exclusion_port == TRUE &
+        ieso_referral == FALSE,
+      na.rm = TRUE
+    ),
+    flare_exclusion_referred_n = sum(
+      flare_completed_app == TRUE &
+        flare_exclusion_port == TRUE &
+        ieso_referral == TRUE,
+      na.rm = TRUE
+    ),
+    ieso_referral_overall_n = sum(flare_completed_app == TRUE &
+                                    ieso_referral == TRUE,
+                                  na.rm = TRUE),
+    post_referral_flare_exclusion_n = sum(
+      flare_completed_app == TRUE &
+        ieso_referral == TRUE &
+        flare_exclusion_port == TRUE,
+      na.rm = TRUE
+    ),
+    ieso_exclusion_n = sum(
+      flare_completed_app == TRUE &
+        ieso_referral == TRUE &
+        flare_exclusion_port == FALSE &
+        ieso_exclusion_port == TRUE,
+      na.rm = TRUE
+    ),
+    ieso_2sessions_exclusion_n = sum(
+      flare_completed_app == TRUE &
+        ieso_referral == TRUE &
+        flare_exclusion_port == FALSE &
+        ieso_exclusion_port == TRUE &
+        (
+          ieso_treatment_completed_total < 2 |
+            is.na(ieso_treatment_completed_total)
+        ),
+      na.rm = TRUE
+    ),
+    ieso_not_suitable_exclusion_n = sum(
+      flare_completed_app == TRUE &
+        ieso_referral == TRUE &
+        flare_exclusion_port == FALSE &
+        ieso_exclusion_port == TRUE &
+        ieso_treatment_completed_total >= 2 &
+        ieso_discharge_reason_primary == "not_suitable_for_service",
+      na.rm = TRUE
+    )
+  ) %>% 
+  pivot_longer(everything(), names_to = "var", values_to = "n")
 ```
 
 
 # Demographics
 
-```{r demographics table}
+## Exclusions vs analytical sample comparison
+
+Compare:
+-   Age
+-   Sex
+-   Baseline GAD-7
+
+```{r}
+# Table for comparing exclusions to analytical sample
+# Chisq test calculated separately as providing seemingly incorrect results as 
+# part of tbl_summary
+port_completed_baseline %>%
+  select(
+    port_exclusion,
+    demographics_age_at_screening_years,
+    gad7_baseline_total
+  ) %>%
+  tbl_summary(
+    by = port_exclusion,
+    type = list(demographics_age_at_screening_years ~ "continuous2",
+                gad7_baseline_total ~ "continuous2"),
+    label = c(
+      demographics_age_at_screening_years ~ "Age (years)",
+      gad7_baseline_total ~ "GAD-7 baseline"
+    ),
+    statistic = all_continuous() ~ c("{mean} ({sd})"),
+    missing = "ifany",
+    digits = list(all_continuous() ~ c(1))
+  ) %>%
+  add_difference(all_continuous() ~ "cohens_d") %>% 
+  add_p(all_continuous() ~ "t.test",
+        pvalue_fun = ~ style_pvalue(.x, digits = 2)) %>%
+  
+  modify_header(
+    statistic = "**statistic**",
+    parameter = "**df**"
+  )
+
+sex_chisq_results <- chisq.test(table(port_completed_baseline$demographics_biological_sex, port_completed_baseline$port_exclusion))
+
+sex_chisq_results
+
+cramersv(sex_chisq_results)
+```
+
+
+## Analytical sample
+
+```{r}
+port_data_exclusions_applied %>% 
+  group_by(demographics_ethnic_origin) %>% 
+  count()
+```
+
+
+```{r demographics table, message=FALSE}
 demographics_data <-
   port_data_exclusions_applied %>%
   
   mutate(
-    # Create followup change variable
-    gad7_followup_change =
-      gad7_followup_total - gad7_treatment_total_final,
-    
     # Capitalise categories for sex variable
     demographics_biological_sex =
-      factor(str_to_title(demographics_biological_sex))
+      factor(str_to_title(demographics_biological_sex)),
+      demographics_ethnic_origin = 
+      droplevels(fct_infreq(str_to_title(demographics_ethnic_origin)))
   ) %>%
   
   # Select variables
   select(
     demographics_age_at_screening_years,
     demographics_biological_sex,
+    demographics_ethnic_origin,
     ieso_treatment_completed_total,
-    gad7_baseline_total,
-    gad7_treatment_change_observed,
-    gad7_followup_change
+    gad7_treatment_total_1,
+    gad7_treatment_change_observed
   )
 
 # Create gt summary table
@@ -141,27 +295,26 @@ demographics_table <-
     label = list(
       demographics_age_at_screening_years ~ "Age (years)",
       demographics_biological_sex ~ "Sex assigned at birth",
+      demographics_ethnic_origin ~ "Ethnicity",
       ieso_treatment_completed_total ~ "Treatment sessions completed",
-      gad7_baseline_total ~ "GAD-7 baseline",
-      gad7_treatment_change_observed ~ "GAD-7 treatment change",
-      gad7_followup_change ~ "GAD-7 follow-up change"
+      gad7_treatment_total_1 ~ "GAD-7 prior to first treatment session",
+      gad7_treatment_change_observed ~ "GAD-7 treatment change"
     ),
     
     statistic = list(
       demographics_age_at_screening_years ~ "{mean} ({sd})",
       ieso_treatment_completed_total ~ "{mean} ({sd})",
-      gad7_baseline_total ~ "{mean} ({sd})",
-      gad7_treatment_change_observed ~ "{mean} ({sd})",
-      gad7_followup_change ~ "{mean} ({sd})"
+      gad7_treatment_total_1 ~ "{mean} ({sd})",
+      gad7_treatment_change_observed ~ "{mean} ({sd})"
     ),
     
     digits = list(
-      demographics_age_at_screening_years ~ 2,
+      demographics_age_at_screening_years ~ 1,
       demographics_biological_sex ~ 0,
-      ieso_treatment_completed_total ~ 2,
-      gad7_baseline_total ~ 2,
-      gad7_treatment_change_observed ~ 2,
-      gad7_followup_change ~ 2
+      demographics_ethnic_origin ~ 0,
+      ieso_treatment_completed_total ~ 1,
+      gad7_treatment_total_1 ~ 1,
+      gad7_treatment_change_observed ~ 1
     ),
     
     missing_text = "Missing"
@@ -188,18 +341,44 @@ suppressMessages(gtsave(
 
 ```{r diagnosis and treatment protocol table}
 
+
 diagnosis_treatment_data <-
   port_data_exclusions_applied %>%
   
   # Capitalise categories and remove underscores
-  transmute(across(
+  transmute(
+    across(
+      .cols = c(ieso_diagnosis_name,
+                ieso_protocol_token),
+      .fns = ~ str_to_title(.) %>%
+        str_replace_all("_", " ") %>%
+        factor() %>%
+        fct_infreq()
+    )
+  ) %>%
+  # Collapse categories where counts are fewer than 5
+  # Doing this after the above so that the category appears at the bottom
+  mutate(across(
     .cols = c(ieso_diagnosis_name,
               ieso_protocol_token),
-    .fns = ~ str_to_title(.) %>%
-      str_replace_all("_", " ") %>%
-      factor() %>%
-      fct_infreq()
-  ))
+    .fns = ~ fct_lump_min(.x, min = 5, other_level = "Other - low count")
+  )) %>%
+  # Rename the 'Other' level of ieso_protocol_token
+  mutate(
+    ieso_diagnosis_name = fct_recode(
+      ieso_diagnosis_name,
+      `Panic disorder (episodic paroxysmal anxiety)` = 
+        "Panic disorder episodic paroxysmal anxiety"
+    ),
+    ieso_protocol_token =
+      fct_recode(
+        ieso_protocol_token,
+        `Other - not described` = "Other",
+        `Low intensity GAD` = "S2 gad",
+        `Fennell` = "Melaine"
+      )
+  )
+
 
 # Create gt summary table
 diagnosis_treatment_table <-

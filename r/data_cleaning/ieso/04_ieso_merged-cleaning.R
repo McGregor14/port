@@ -21,9 +21,14 @@ ieso_data <-
   mutate(
     ieso_exclusion_port = case_when(
       ieso_treatment_completed_total < 2 |
+        is.na(ieso_treatment_completed_total) |
         ieso_discharge_reason_primary == "not_suitable_for_service"
       ~ TRUE,
-      TRUE ~ FALSE
+      ieso_treatment_completed_total >= 2 &
+        !is.na(ieso_treatment_completed_total) &
+        ieso_discharge_reason_primary != "not_suitable_for_service"
+      ~ FALSE,
+      .default = NA
     ),
     .after = ieso_last_treatment_date
   )
@@ -31,8 +36,6 @@ ieso_data <-
 # Print the number of exclusions
 ieso_data %>%
   count(ieso_exclusion_port)
-
-
 
 # Create treatment change scores ------------------------------------------
 

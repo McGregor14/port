@@ -5,6 +5,7 @@ rm(list = ls())
 library(tidyverse) # data manipulation
 library(here) # file referencing
 library(janitor) # data cleaning
+library(naniar) # missing data
 
 # Source function script
 source(file = here("r", "functions.R"))

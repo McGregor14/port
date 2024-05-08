@@ -15,6 +15,19 @@ flare_data <-
 
 
 
+# Fix flare complete variable ---------------------------------------------
+
+# Due to an error on the portal, participants that reach the final module have
+# missing values for their start/end times for flare. Since they have completed
+# the fear conditioning task, they are reclassified as having completed the app
+flare_data <- flare_data %>%
+  mutate(flare_completed_app = case_when(
+    flare_current_module == "post_experiment_questions" ~ TRUE,
+    .default = flare_completed_app
+  ))
+
+
+
 # Create FLARe exclusion variable for PORT --------------------------------
 flare_data <- flare_data %>%
   mutate(
@@ -37,7 +50,7 @@ flare_data <- flare_data %>%
         is.na(flare_was_quiet) |
         
         flare_not_alone == TRUE |
-        is.na(flare_was_quiet) |
+        is.na(flare_not_alone) |
         
         flare_was_interrupted == TRUE |
         is.na(flare_was_interrupted) |

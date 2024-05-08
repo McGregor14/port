@@ -1,99 +1,99 @@
-analysis,model,term,estimate,std.error,statistic,p.value,conf.low,conf.high,pval.adj,sig_05,sig_05_adj,iv
-primary,acquisition_cs_minus,(Intercept),8.08726577450592,0.37933763205720733,21.31943970506541,6.119123948978843e-40,7.335109323737643,8.839422225274197,2.4476495795915373e-39,TRUE,TRUE,TRUE
-primary,acquisition_cs_minus,fc,-0.23340975061664576,0.36897748423510224,-0.6325853489421147,0.5283796372688532,-0.965023942044478,0.49820444081118637,0.5283796372688532,FALSE,FALSE,TRUE
-primary,acquisition_cs_minus,gad7_treatment_total_1_z,2.526618549822017,0.3849312253366706,6.563818114813035,2.040899905878882e-9,1.763371036863823,3.2898660627802108,6.122699717636646e-9,TRUE,TRUE,FALSE
-primary,acquisition_cs_minus,ieso_treatment_completed_total_z,-1.5411239181942535,0.3832878120197644,-4.02080073997966,1.0945022885757824e-4,-2.3011128461265278,-0.7811349902619795,2.1890045771515647e-4,TRUE,TRUE,FALSE
-primary,extinction_cs_plus,(Intercept),8.079227885085217,0.38035845568861776,21.24108919955053,8.380635100945548e-40,7.325047329628729,8.833408440541705,3.352254040378219e-39,TRUE,TRUE,TRUE
-primary,extinction_cs_plus,fc,0.02385566494870127,0.3752979283268829,0.0635646060052937,0.9494377673925082,-0.7202907995614812,0.7680021294588838,0.9494377673925082,FALSE,FALSE,TRUE
-primary,extinction_cs_plus,gad7_treatment_total_1_z,2.49787682970953,0.3858733733662481,6.473307053862703,3.1352807834827142e-9,1.732761211248114,3.2629924481709462,9.405842350448143e-9,TRUE,TRUE,FALSE
-primary,extinction_cs_plus,ieso_treatment_completed_total_z,-1.5124349456009514,0.38676103359511965,-3.9105153162462645,1.6358183114369832e-4,-2.2793106303221142,-0.7455592608797885,3.2716366228739663e-4,TRUE,TRUE,FALSE
-secondary - age and sex adjustment,acquisition_cs_minus,(Intercept),8.212825422237088,0.39661383940608486,20.707359668879693,1.6808368739761796e-38,7.426235415222062,8.999415429252114,1.0085021243857076e-37,TRUE,TRUE,TRUE
-secondary - age and sex adjustment,acquisition_cs_minus,fc,-0.19309888917806042,0.36795325767946147,-0.5247918999164738,0.6008555844899042,-0.9228473920863248,0.536649613730204,0.9300490272479855,FALSE,FALSE,TRUE
-secondary - age and sex adjustment,acquisition_cs_minus,gad7_treatment_total_1_z,2.438932674413319,0.38658864003132437,6.308857586233517,7.146776134446714e-9,1.6722252858624607,3.205640062964177,3.573388067223357e-8,TRUE,TRUE,FALSE
-secondary - age and sex adjustment,acquisition_cs_minus,ieso_treatment_completed_total_z,-1.5951392383384426,0.3832985405392141,-4.161610519295074,6.567663093052136e-5,-2.355321490533861,-0.834956986143024,2.627065237220854e-4,TRUE,TRUE,FALSE
-secondary - age and sex adjustment,acquisition_cs_minus,demographics_age_at_screening_years_z,-0.5941256752102155,0.39703567714505306,-1.496403747598626,0.1376064674656715,-1.3815522978878494,0.19330094746741833,0.41281940239701453,FALSE,FALSE,FALSE
-secondary - age and sex adjustment,acquisition_cs_minus,demographics_biological_sexmale,-0.968802014058973,1.3211041684145595,-0.733327497726103,0.4650245136239928,-3.588900542786323,1.651296514668377,0.9300490272479855,FALSE,FALSE,FALSE
-secondary - age and sex adjustment,extinction_cs_plus,(Intercept),8.206392365227817,0.3973900227084275,20.65072572606837,2.110958185528778e-38,7.418262981699483,8.994521748756151,1.2665749113172668e-37,TRUE,TRUE,TRUE
-secondary - age and sex adjustment,extinction_cs_plus,fc,0.04945816758304016,0.37351822486166664,0.13241165836381105,0.8949170210638993,-0.6913271352045328,0.790243470370613,0.9237324393717385,FALSE,FALSE,TRUE
-secondary - age and sex adjustment,extinction_cs_plus,gad7_treatment_total_1_z,2.4097736768086593,0.3871478206168881,6.224427850243051,1.0578846281837373e-8,1.641957285451999,3.1775900681653195,5.289423140918686e-8,TRUE,TRUE,FALSE
-secondary - age and sex adjustment,extinction_cs_plus,ieso_treatment_completed_total_z,-1.56764862543241,0.38650812112881483,-4.055926744447231,9.727503116178191e-5,-2.3341963237309447,-0.8011009271338756,3.8910012464712766e-4,TRUE,TRUE,FALSE
-secondary - age and sex adjustment,extinction_cs_plus,demographics_age_at_screening_years_z,-0.6093236582540419,0.397035268307453,-1.534683961078739,0.12792757485150233,-1.3967494700987224,0.17810215359063875,0.383782724554507,FALSE,FALSE,FALSE
-secondary - age and sex adjustment,extinction_cs_plus,demographics_biological_sexmale,-0.9768758348261966,1.3227130623967438,-0.7385394932564638,0.4618662196858693,-3.6001652253011542,1.646413555648761,0.9237324393717385,FALSE,FALSE,FALSE
-secondary - gad7 followup dv,acquisition_cs_minus,(Intercept),7.559043456775963,0.40766938956883936,18.5420923184117,2.746992352734801e-34,6.75033704973227,8.367749863819656,1.0987969410939203e-33,TRUE,TRUE,TRUE
-secondary - gad7 followup dv,acquisition_cs_minus,fc,-0.5544882707369287,0.40336116372485176,-1.3746694540854871,0.17227619284484133,-1.3546483166061694,0.24567177513231175,0.17227619284484133,FALSE,FALSE,TRUE
-secondary - gad7 followup dv,acquisition_cs_minus,gad7_treatment_total_1_z,2.531956023055016,0.41126161145823875,6.15655814331244,1.5183857771398334e-8,1.7161236140798255,3.3477884320302067,4.5551573314195e-8,TRUE,TRUE,FALSE
-secondary - gad7 followup dv,acquisition_cs_minus,ieso_treatment_completed_total_z,-0.9181067130147181,0.41139796800221806,-2.231675371351781,0.027846188999191918,-1.7342096166936565,-0.1020038093357798,0.055692377998383835,TRUE,FALSE,FALSE
-secondary - gad7 followup dv,extinction_cs_plus,(Intercept),7.563575725415218,0.4095021534183777,18.470173263503476,3.722838997284828e-34,6.751233607902099,8.375917842928336,1.4891355989139312e-33,TRUE,TRUE,TRUE
-secondary - gad7 followup dv,extinction_cs_plus,fc,-0.43748056069972246,0.4066151565818326,-1.0759081495568354,0.2845317022874678,-1.244095653082752,0.36913453168330707,0.2845317022874678,FALSE,FALSE,TRUE
-secondary - gad7 followup dv,extinction_cs_plus,gad7_treatment_total_1_z,2.5306618243549797,0.41345157873097066,6.120817901149337,1.7885407605064845e-8,1.7104851094054125,3.350838539304547,5.365622281519454e-8,TRUE,TRUE,FALSE
-secondary - gad7 followup dv,extinction_cs_plus,ieso_treatment_completed_total_z,-0.9312514573618202,0.41591896920215515,-2.2390213630991918,0.027348013363114234,-1.7563228112854734,-0.10618010343816697,0.05469602672622847,TRUE,FALSE,FALSE
-secondary - fss followup dv,acquisition_cs_minus,(Intercept),106.35669842741683,1.8403280115671985,57.79225103292587,1.2010543285539745e-78,102.70554006772643,110.00785678710723,4.804217314215898e-78,TRUE,TRUE,TRUE
-secondary - fss followup dv,acquisition_cs_minus,fc,0.7855631360178573,1.814873979214951,0.4328472086847945,0.6660578929693379,-2.81509514845411,4.386221420489824,1,FALSE,FALSE,TRUE
-secondary - fss followup dv,acquisition_cs_minus,fss_baseline_total_z,20.78442309212406,1.9677203951177262,10.56269129683974,5.798551040501602e-18,16.88052187179258,24.688324312455542,1.7395653121504807e-17,TRUE,TRUE,FALSE
-secondary - fss followup dv,acquisition_cs_minus,ieso_treatment_completed_total_z,-0.1047907044245169,1.8607343197872412,-0.056316854754685675,0.9552017628906798,-3.796434598421698,3.5868531895726643,1,FALSE,FALSE,FALSE
-secondary - fss followup dv,extinction_cs_plus,(Intercept),106.35946728776509,1.8424575292939422,57.726957390721324,1.3404240101675747e-78,102.70408402555663,110.01485054997354,5.361696040670299e-78,TRUE,TRUE,TRUE
-secondary - fss followup dv,extinction_cs_plus,fc,0.5415308712155478,1.8197928531215843,0.29757830419359654,0.7666423608068471,-3.0688863189903888,4.151948061421484,1,FALSE,FALSE,TRUE
-secondary - fss followup dv,extinction_cs_plus,fss_baseline_total_z,20.825057214957834,1.9649735067132554,10.598136383930795,4.850782744694685e-18,16.926605742985387,24.72350868693028,1.4552348234084056e-17,TRUE,TRUE,FALSE
-secondary - fss followup dv,extinction_cs_plus,ieso_treatment_completed_total_z,-0.09553939843218213,1.8715682162691478,-0.05104777779494132,0.959389277717527,-3.8086774344840983,3.6175986376197344,1,FALSE,FALSE,FALSE
-exploratory - discrimination scores,acquisition differential,(Intercept),8.078138879246245,0.3799581035323547,21.260604272276993,7.748666332940838e-40,7.3247521481600915,8.831525610332397,3.099466533176335e-39,TRUE,TRUE,TRUE
-exploratory - discrimination scores,acquisition differential,fc,-0.08427582992779697,0.3826018959162133,-0.22027028832667545,0.8260883644079016,-0.8429047129334077,0.6743530530778139,0.8260883644079016,FALSE,FALSE,TRUE
-exploratory - discrimination scores,acquisition differential,gad7_treatment_total_1_z,2.501628397986332,0.38339829492884847,6.524881385950314,2.455575881160233e-9,1.7414204028544327,3.2618363931182315,7.366727643480699e-9,TRUE,TRUE,FALSE
-exploratory - discrimination scores,acquisition differential,ieso_treatment_completed_total_z,-1.5096577263222453,0.3830919720012196,-3.9407187742306413,1.466393623887706e-4,-2.2692583396745283,-0.7500571129699622,2.932787247775412e-4,TRUE,TRUE,FALSE
-exploratory - discrimination scores,extinction_differential,(Intercept),8.074973387564041,0.3792540840400179,21.291724275042984,6.8386315690335746e-40,7.322982597080343,8.826964178047739,2.7354526276134298e-39,TRUE,TRUE,TRUE
-exploratory - discrimination scores,extinction_differential,fc,0.25261405164223794,0.39294483046061796,0.6428740934092926,0.5217071949582524,-0.5265229599538809,1.0317510632383566,0.5217071949582524,FALSE,FALSE,TRUE
-exploratory - discrimination scores,extinction_differential,gad7_treatment_total_1_z,2.4548357433916994,0.3892772595992868,6.306137034356057,6.886145138710327e-9,1.6829708473171539,3.226700639466245,2.065843541613098e-8,TRUE,TRUE,FALSE
-exploratory - discrimination scores,extinction_differential,ieso_treatment_completed_total_z,-1.4611319801766227,0.390780853827907,-3.7390060589306136,3.01197834882767e-4,-2.2359782258532666,-0.6862857344999788,6.02395669765534e-4,TRUE,TRUE,FALSE
-exploratory - affective ratings,post-acquisition cs+,(Intercept),8.080490990315324,0.37990445209736606,21.26979809187487,7.467794218158762e-40,7.327210640113927,8.833771340516721,2.987117687263505e-39,TRUE,TRUE,TRUE
-exploratory - affective ratings,post-acquisition cs+,fc,0.017999458791253947,0.38966168602186396,0.046192529152696823,0.9632445376054011,-0.7546276838656282,0.7906266014481361,0.9632445376054011,FALSE,FALSE,TRUE
-exploratory - affective ratings,post-acquisition cs+,gad7_treatment_total_1_z,2.4978588940763826,0.3880872352718322,6.436333553528963,3.73383356884211e-9,1.7283535964145016,3.2673641917382636,1.120150070652633e-8,TRUE,TRUE,FALSE
-exploratory - affective ratings,post-acquisition cs+,ieso_treatment_completed_total_z,-1.5164227992448405,0.3820048362547123,-3.9696429346609725,1.319949182175928e-4,-2.2738678232342604,-0.7589777752554207,2.639898364351856e-4,TRUE,TRUE,FALSE
-exploratory - affective ratings,post-acquisition cs-,(Intercept),8.080375445820664,0.3797301470587219,21.279257147236997,7.189516331494746e-40,7.327440710312191,8.833310181329137,2.8758065325978982e-39,TRUE,TRUE,TRUE
-exploratory - affective ratings,post-acquisition cs-,fc,0.12395652027527454,0.398560411689008,0.3110106188167939,0.7564091402185477,-0.6663151515517329,0.9142281921022819,0.7564091402185477,FALSE,FALSE,TRUE
-exploratory - affective ratings,post-acquisition cs-,gad7_treatment_total_1_z,2.4784687093964473,0.389844562869798,6.357581829925937,5.410048482536933e-9,1.705478955732258,3.2514584630606365,1.62301454476108e-8,TRUE,TRUE,FALSE
-exploratory - affective ratings,post-acquisition cs-,ieso_treatment_completed_total_z,-1.5053331798079863,0.38344144722135093,-3.925848889619374,1.547596545992213e-4,-2.265626737964559,-0.7450396216514139,3.095193091984426e-4,TRUE,TRUE,FALSE
-exploratory - affective ratings,post-extinction cs+,(Intercept),8.072025895069553,0.37979508696429,21.25363432052116,7.96867119358798e-40,7.31896239572444,8.825089394414665,3.187468477435192e-39,TRUE,TRUE,TRUE
-exploratory - affective ratings,post-extinction cs+,fc,0.21048966408213887,0.41351636476130754,0.5090237824170248,0.6118035666552721,-0.6094368999307859,1.0304162280950635,0.6118035666552721,FALSE,FALSE,TRUE
-exploratory - affective ratings,post-extinction cs+,gad7_treatment_total_1_z,2.446107985417973,0.3976781328946533,6.150974325927943,1.4186027824422552e-8,1.6575857094601576,3.2346302613757887,4.2558083473267655e-8,TRUE,TRUE,FALSE
-exploratory - affective ratings,post-extinction cs+,ieso_treatment_completed_total_z,-1.4854282642776253,0.38631225193494856,-3.8451492460760934,2.0686632999491133e-4,-2.251414097868402,-0.719442430686849,4.1373265998982266e-4,TRUE,TRUE,FALSE
-exploratory - affective ratings,post-extinction cs-,(Intercept),8.070578267126539,0.377718997092931,21.366619972097716,5.065152390362534e-40,7.321631270488128,8.81952526376495,2.0260609561450136e-39,TRUE,TRUE,TRUE
-exploratory - affective ratings,post-extinction cs-,fc,0.4395116053801867,0.38917647829193946,1.129337536814053,0.2613289407972606,-0.33215345997883766,1.211176670739211,0.2613289407972606,FALSE,FALSE,TRUE
-exploratory - affective ratings,post-extinction cs-,gad7_treatment_total_1_z,2.522522536376739,0.3816447462460422,6.609608965376655,1.6410400994056939e-9,1.7657915043564512,3.279253568397027,4.923120298217082e-9,TRUE,TRUE,FALSE
-exploratory - affective ratings,post-extinction cs-,ieso_treatment_completed_total_z,-1.4850554690907367,0.3807035498549313,-3.9008185493847467,1.694064151749527e-4,-2.239920282531089,-0.7301906556503843,3.388128303499054e-4,TRUE,TRUE,FALSE
-exploratory - non-fc predictors,asi,(Intercept),8.080403492743526,0.37990318599451794,21.269638662256778,7.47257634190723e-40,7.327125652990196,8.833681332496857,2.989030536762892e-39,TRUE,TRUE,TRUE
-exploratory - non-fc predictors,asi,predictor,0.01362822119391316,0.4062610834755655,0.03354547543004528,0.9733032882145333,-0.791912460269963,0.8191689026577893,0.9733032882145333,FALSE,FALSE,TRUE
-exploratory - non-fc predictors,asi,gad7_treatment_total_1_z,2.496596257042834,0.40178218271645166,6.213805301577417,1.0596182777011319e-8,1.699936408413941,3.293256105671727,3.178854833103396e-8,TRUE,TRUE,FALSE
-exploratory - non-fc predictors,asi,ieso_treatment_completed_total_z,-1.5158015849100692,0.38226632149171647,-3.965302459800702,1.340997040085064e-4,-2.2737650858212928,-0.7578380839988457,2.681994080170128e-4,TRUE,TRUE,FALSE
-exploratory - non-fc predictors,cbas,(Intercept),8.085100089766,0.37972697234392866,21.291877266077147,6.834434565017411e-40,7.332171649130508,8.838028530401491,2.7337738260069642e-39,TRUE,TRUE,TRUE
-exploratory - non-fc predictors,cbas,predictor,0.18734612585393967,0.4356291953358603,0.4300587009773301,0.6680342915229065,-0.6764260963690505,1.05111834807693,0.6680342915229065,FALSE,FALSE,TRUE
-exploratory - non-fc predictors,cbas,gad7_treatment_total_1_z,2.4297742287647925,0.41703776125047803,5.826269116444446,6.276107130926133e-8,1.6028653860080522,3.256683071521533,1.8828321392778398e-7,TRUE,TRUE,FALSE
-exploratory - non-fc predictors,cbas,ieso_treatment_completed_total_z,-1.5097810954383672,0.38196050814953536,-3.952715171400119,1.4038643477199452e-4,-2.2671382249837837,-0.7524239658929506,2.8077286954398905e-4,TRUE,TRUE,FALSE
-exploratory - non-fc predictors,eacs,(Intercept),8.081219744347415,0.37973828729996406,21.28102436498291,7.138696039354353e-40,7.328268868244274,8.834170620450555,2.855478415741741e-39,TRUE,TRUE,TRUE
-exploratory - non-fc predictors,eacs,predictor,-0.132858719632102,0.4264933992701538,-0.3115141286112737,0.7560274726662406,-0.9785163458777326,0.7127989066135285,0.7560274726662406,FALSE,FALSE,TRUE
-exploratory - non-fc predictors,eacs,gad7_treatment_total_1_z,2.4420054219372886,0.42697773914842874,5.719280416837804,1.0162223005107306e-7,1.5953874391833065,3.288623404691271,3.0486669015321917e-7,TRUE,TRUE,FALSE
-exploratory - non-fc predictors,eacs,ieso_treatment_completed_total_z,-1.5058292244123166,0.3832929399509708,-3.9286641298557075,1.5319005151748303e-4,-2.2658283200849096,-0.7458301287397237,3.0638010303496606e-4,TRUE,TRUE,FALSE
-exploratory - depression adjustment,acquisition cs-,(Intercept),8.091578643444517,0.3646128528129185,22.19224742358788,3.07091979045853e-41,7.368537673678213,8.814619613210821,1.535459895229265e-40,TRUE,TRUE,NA
-exploratory - depression adjustment,acquisition cs-,fc,-0.40387115199610746,0.35887071910739093,-1.1253945515550694,0.26301233898584847,-1.1155252551422639,0.30778295115004894,0.26301233898584847,FALSE,FALSE,NA
-exploratory - depression adjustment,acquisition cs-,gad7_treatment_total_1_z,1.6977584803579904,0.4561311373397871,3.7220841582083755,3.209509263499241e-4,0.7932333180154905,2.60228364270049,9.628527790497723e-4,TRUE,TRUE,FALSE
-exploratory - depression adjustment,acquisition cs-,ieso_treatment_completed_total_z,-1.5290481166276733,0.3684275292423553,-4.150200501499035,6.811176647531539e-5,-2.259653732904944,-0.7984425003504025,2.7244706590126154e-4,TRUE,TRUE,FALSE
-exploratory - depression adjustment,acquisition cs-,phq9_treatment_total_1_z,1.427977708804837,0.45959465516234754,3.1070372398051873,0.0024365797142735764,0.5165842606465547,2.3393711569631197,0.004873159428547153,TRUE,TRUE,FALSE
-exploratory - depression adjustment,extinction cs+,(Intercept),8.084312224632455,0.3670121946742229,22.0273667794839,5.828543859923027e-41,7.356513269916321,8.812111179348591,2.9142719299615136e-40,TRUE,TRUE,NA
-exploratory - depression adjustment,extinction cs+,fc,-0.09125245553154844,0.36420348198820957,-0.2505534956266634,0.8026536555824638,-0.8134816275902077,0.6309767165271107,0.8026536555824638,FALSE,FALSE,NA
-exploratory - depression adjustment,extinction cs+,gad7_treatment_total_1_z,1.7029243350018426,0.4589364033719583,3.7105889236283973,3.34085067769914e-4,0.7928362248457771,2.613012445157908,0.001002255203309742,TRUE,TRUE,FALSE
-exploratory - depression adjustment,extinction cs+,ieso_treatment_completed_total_z,-1.5022077784026466,0.3732019997256159,-4.025186841193492,1.083017134987594e-4,-2.242281348817312,-0.7621342079879811,4.332068539950376e-4,TRUE,TRUE,FALSE
-exploratory - depression adjustment,extinction cs+,phq9_treatment_total_1_z,1.3611857141767076,0.45943319945443273,2.962750005426441,0.003779322042126881,0.4501124387460851,2.27225898960733,0.007558644084253762,TRUE,TRUE,FALSE
-exploratory - low gad excluded,acquisition cs-,(Intercept),8.137031060003178,0.429801690576596,18.932059222677854,7.763048772092552e-34,7.28364972800945,8.990412391996905,3.105219508837021e-33,TRUE,TRUE,TRUE
-exploratory - low gad excluded,acquisition cs-,fc,-0.275317420125543,0.39392275706854346,-0.6989121983567889,0.486332603600245,-1.0574602885698594,0.5068254483187735,0.486332603600245,FALSE,FALSE,TRUE
-exploratory - low gad excluded,acquisition cs-,gad7_treatment_total_1_z,2.4750097170844088,0.504416536373935,4.906678387025817,3.880032306188134e-6,1.4734788596488022,3.4765405745200155,1.1640096918564402e-5,TRUE,TRUE,FALSE
-exploratory - low gad excluded,acquisition cs-,ieso_treatment_completed_total_z,-1.5486352390220643,0.4072995573046554,-3.802202116963518,2.547510237177571e-4,-2.3573380579123477,-0.739932420131781,5.095020474355142e-4,TRUE,TRUE,FALSE
-exploratory - low gad excluded,extinction cs+,(Intercept),8.129997426215057,0.43111299648306284,18.858158980448323,1.0393585402649607e-33,7.2740124656045815,8.985982386825533,4.157434161059843e-33,TRUE,TRUE,TRUE
-exploratory - low gad excluded,extinction cs+,fc,-0.04018292807851477,0.4100941600358466,-0.09798463863762985,0.9221531256242875,-0.8544344962022826,0.7740686400452531,0.9221531256242875,FALSE,FALSE,TRUE
-exploratory - low gad excluded,extinction cs+,gad7_treatment_total_1_z,2.4486955020390146,0.5068528352418334,4.831176491043351,5.263103860634404e-6,1.442327316089803,3.4550636879882264,1.578931158190321e-5,TRUE,TRUE,FALSE
-exploratory - low gad excluded,extinction cs+,ieso_treatment_completed_total_z,-1.525155125058035,0.4123485848396789,-3.698703429892976,3.6466681991250045e-4,-2.3438829064777376,-0.7064273436383326,7.293336398250009e-4,TRUE,TRUE,FALSE
-exploratory - treatment completers,acquisition cs-,(Intercept),6.7874582068335005,0.4425052651477005,15.338706093289005,5.629829581723049e-25,5.906132590615276,7.668783823051725,2.2519318326892194e-24,TRUE,TRUE,TRUE
-exploratory - treatment completers,acquisition cs-,fc,-0.322592294244134,0.4440780998496088,-0.726431441571613,0.46980577883274954,-1.207050482257648,0.5618658937693801,0.9396115576654991,FALSE,FALSE,TRUE
-exploratory - treatment completers,acquisition cs-,gad7_treatment_total_1_z,1.8413143155159288,0.4433925277544406,4.152786076123693,8.507077810317287e-5,0.9582215626662979,2.7244070683655597,2.5521233430951865e-4,TRUE,TRUE,FALSE
-exploratory - treatment completers,acquisition cs-,ieso_treatment_completed_total_z,-0.32145662004804126,0.4514821512372238,-0.7120029422362197,0.4786429648254954,-1.2206612544106696,0.5777480143145872,0.9396115576654991,FALSE,FALSE,FALSE
-exploratory - treatment completers,extinction cs+,(Intercept),6.793599805970826,0.44325484882566635,15.326622650534775,5.891598963838823e-25,5.9107812644725595,7.676418347469092,2.356639585535529e-24,TRUE,TRUE,TRUE
-exploratory - treatment completers,extinction cs+,fc,-0.20773509897098735,0.41789739739419635,-0.49709593853975104,0.620556423418962,-1.0400498990027998,0.6245797010608249,0.9451891392490137,FALSE,FALSE,TRUE
-exploratory - treatment completers,extinction cs+,gad7_treatment_total_1_z,1.8367964488642787,0.44467208348629417,4.130676327741391,9.20253570544142e-5,0.9511552399110013,2.722437657817556,2.760760711632426e-4,TRUE,TRUE,FALSE
-exploratory - treatment completers,extinction cs+,ieso_treatment_completed_total_z,-0.3265832531587654,0.45241793491855037,-0.721861862566436,0.47259456962450686,-1.2276516622480445,0.5744851559305135,0.9451891392490137,FALSE,FALSE,FALSE
+Analysis type,Model,Term,Std. beta coefficient (Std. error),95% CIs,t,p-value (adjusted)
+Primary,Expectancy ratings,Intercept,8.08 (0.38),"7.33, 8.83",21.31,<0.001
+Primary,Expectancy ratings,Treatment sessions completed,-1.54 (0.38),"-2.3, -0.78",-4.02,<0.001
+Primary,Expectancy ratings,Session 1 GAD-7 total,2.53 (0.38),"1.76, 3.29",6.56,<0.001
+Primary,Expectancy ratings,Acquisition CS- mean,-0.24 (0.38),"-1, 0.52",-0.63,0.53 (1)
+Primary,Expectancy ratings,Intercept,8.08 (0.38),"7.33, 8.83",21.27,<0.001
+Primary,Expectancy ratings,Treatment sessions completed,-1.51 (0.39),"-2.28, -0.75",-3.91,<0.001
+Primary,Expectancy ratings,Session 1 GAD-7 total,2.5 (0.39),"1.73, 3.26",6.47,<0.001
+Primary,Expectancy ratings,Extinction CS+ mean,0.02 (0.38),"-0.74, 0.78",0.06,0.95 (1)
+Secondary,Age and sex adjustment,Intercept,8.18 (0.4),"7.39, 8.96",20.63,<0.001
+Secondary,Age and sex adjustment,Treatment sessions completed,-1.6 (0.38),"-2.36, -0.83",-4.16,<0.001
+Secondary,Age and sex adjustment,Session 1 GAD-7 total,2.44 (0.39),"1.67, 3.21",6.31,<0.001
+Secondary,Age and sex adjustment,Sex assigned at birth,-0.97 (1.32),"-3.59, 1.65",-0.73,0.465
+Secondary,Age and sex adjustment,Age (years),-0.58 (0.39),"-1.36, 0.19",-1.5,0.138
+Secondary,Age and sex adjustment,Acquisition CS- mean,-0.2 (0.38),"-0.95, 0.56",-0.52,0.602 (1)
+Secondary,Age and sex adjustment,Intercept,8.18 (0.4),"7.39, 8.97",20.6,<0.001
+Secondary,Age and sex adjustment,Treatment sessions completed,-1.57 (0.39),"-2.33, -0.8",-4.06,<0.001
+Secondary,Age and sex adjustment,Session 1 GAD-7 total,2.41 (0.39),"1.64, 3.18",6.22,<0.001
+Secondary,Age and sex adjustment,Sex assigned at birth,-0.98 (1.32),"-3.6, 1.65",-0.74,0.462
+Secondary,Age and sex adjustment,Age (years),-0.6 (0.39),"-1.37, 0.18",-1.53,0.128
+Secondary,Age and sex adjustment,Extinction CS+ mean,0.05 (0.38),"-0.71, 0.81",0.13,0.896 (1)
+Secondary,FSS follow up (DV),Intercept,106.29 (1.84),"102.64, 109.94",57.8,<0.001
+Secondary,FSS follow up (DV),Treatment sessions completed,-0.1 (1.86),"-3.8, 3.59",-0.06,0.955
+Secondary,FSS follow up (DV),FSS baseline total,21.24 (2.01),"17.25, 25.24",10.56,<0.001
+Secondary,FSS follow up (DV),Acquisition CS- mean,0.81 (1.88),"-2.91, 4.54",0.43,0.666 (1)
+Secondary,FSS follow up (DV),Intercept,106.3 (1.84),"102.65, 109.95",57.78,<0.001
+Secondary,FSS follow up (DV),Treatment sessions completed,-0.1 (1.87),"-3.81, 3.62",-0.05,0.959
+Secondary,FSS follow up (DV),FSS baseline total,21.29 (2.01),"17.3, 25.27",10.6,<0.001
+Secondary,FSS follow up (DV),Extinction CS+ mean,0.55 (1.86),"-3.14, 4.24",0.3,0.768 (1)
+Secondary,GAD-7 follow up (DV),Intercept,7.54 (0.41),"6.74, 8.35",18.52,<0.001
+Secondary,GAD-7 follow up (DV),Treatment sessions completed,-0.92 (0.41),"-1.73, -0.1",-2.23,0.028
+Secondary,GAD-7 follow up (DV),Session 1 GAD-7 total,2.53 (0.41),"1.72, 3.35",6.16,<0.001
+Secondary,GAD-7 follow up (DV),Acquisition CS- mean,-0.57 (0.42),"-1.4, 0.26",-1.37,0.174 (1)
+Secondary,GAD-7 follow up (DV),Intercept,7.54 (0.41),"6.73, 8.35",18.44,<0.001
+Secondary,GAD-7 follow up (DV),Treatment sessions completed,-0.93 (0.42),"-1.76, -0.11",-2.24,0.027
+Secondary,GAD-7 follow up (DV),Session 1 GAD-7 total,2.53 (0.41),"1.71, 3.35",6.12,<0.001
+Secondary,GAD-7 follow up (DV),Extinction CS+ mean,-0.45 (0.42),"-1.27, 0.38",-1.07,0.285 (1)
+Exploratory,Affective ratings,Intercept,8.08 (0.38),"7.33, 8.83",21.27,<0.001
+Exploratory,Affective ratings,Treatment sessions completed,-1.52 (0.38),"-2.27, -0.76",-3.97,<0.001
+Exploratory,Affective ratings,Session 1 GAD-7 total,2.5 (0.39),"1.73, 3.27",6.44,<0.001
+Exploratory,Affective ratings,Post-acquisition CS+ mean,0.02 (0.38),"-0.74, 0.78",0.05,0.963 (1)
+Exploratory,Affective ratings,Intercept,8.08 (0.38),"7.33, 8.83",21.28,<0.001
+Exploratory,Affective ratings,Treatment sessions completed,-1.51 (0.38),"-2.27, -0.75",-3.93,<0.001
+Exploratory,Affective ratings,Session 1 GAD-7 total,2.48 (0.39),"1.71, 3.25",6.36,<0.001
+Exploratory,Affective ratings,Post-acquisition CS- mean,0.12 (0.39),"-0.65, 0.89",0.31,0.756 (1)
+Exploratory,Affective ratings,Intercept,8.08 (0.38),"7.33, 8.83",21.29,<0.001
+Exploratory,Affective ratings,Treatment sessions completed,-1.49 (0.39),"-2.25, -0.72",-3.85,<0.001
+Exploratory,Affective ratings,Session 1 GAD-7 total,2.45 (0.4),"1.66, 3.23",6.15,<0.001
+Exploratory,Affective ratings,Post-extinction CS+ mean,0.21 (0.41),"-0.6, 1.01",0.51,0.612 (1)
+Exploratory,Affective ratings,Intercept,8.07 (0.38),"7.33, 8.82",21.38,<0.001
+Exploratory,Affective ratings,Treatment sessions completed,-1.49 (0.38),"-2.24, -0.73",-3.9,<0.001
+Exploratory,Affective ratings,Session 1 GAD-7 total,2.52 (0.38),"1.77, 3.28",6.61,<0.001
+Exploratory,Affective ratings,Post-extinction CS- mean,0.43 (0.38),"-0.32, 1.18",1.13,0.261 (1)
+Exploratory,Depression adjustment,Intercept,8.08 (0.36),"7.36, 8.8",22.17,<0.001
+Exploratory,Depression adjustment,Treatment sessions completed,-1.53 (0.37),"-2.26, -0.8",-4.15,<0.001
+Exploratory,Depression adjustment,Session 1 GAD-7 total,1.7 (0.46),"0.79, 2.6",3.72,<0.001
+Exploratory,Depression adjustment,Session 1 PHQ-9 total,1.43 (0.46),"0.52, 2.34",3.11,0.002
+Exploratory,Depression adjustment,Acquisition CS- mean,-0.42 (0.37),"-1.15, 0.32",-1.12,0.264 (1)
+Exploratory,Depression adjustment,Intercept,8.08 (0.37),"7.35, 8.81",22.04,<0.001
+Exploratory,Depression adjustment,Treatment sessions completed,-1.5 (0.37),"-2.24, -0.76",-4.03,<0.001
+Exploratory,Depression adjustment,Session 1 GAD-7 total,1.7 (0.46),"0.79, 2.61",3.71,<0.001
+Exploratory,Depression adjustment,Session 1 PHQ-9 total,1.36 (0.46),"0.45, 2.27",2.96,0.004
+Exploratory,Depression adjustment,Extinction CS+ mean,-0.09 (0.37),"-0.83, 0.64",-0.25,0.802 (1)
+Exploratory,Discrimination scores,Intercept,8.08 (0.38),"7.33, 8.84",21.32,<0.001
+Exploratory,Discrimination scores,Treatment sessions completed,-1.46 (0.39),"-2.24, -0.69",-3.74,<0.001
+Exploratory,Discrimination scores,Session 1 GAD-7 total,2.45 (0.39),"1.68, 3.23",6.31,<0.001
+Exploratory,Discrimination scores,Acquisition mean discrimination,0.26 (0.4),"-0.53, 1.05",0.65,0.519 (1)
+Exploratory,Discrimination scores,Intercept,8.08 (0.38),"7.33, 8.83",21.27,<0.001
+Exploratory,Discrimination scores,Treatment sessions completed,-1.51 (0.38),"-2.27, -0.75",-3.94,<0.001
+Exploratory,Discrimination scores,Session 1 GAD-7 total,2.5 (0.38),"1.74, 3.26",6.52,<0.001
+Exploratory,Discrimination scores,Extinction mean discrimination,-0.08 (0.38),"-0.83, 0.67",-0.21,0.831 (1)
+Exploratory,Low gad excluded,Intercept,8.13 (0.43),"7.28, 8.98",18.92,<0.001
+Exploratory,Low gad excluded,Treatment sessions completed,-1.55 (0.41),"-2.36, -0.74",-3.8,<0.001
+Exploratory,Low gad excluded,Session 1 GAD-7 total,2.47 (0.5),"1.47, 3.48",4.91,<0.001
+Exploratory,Low gad excluded,Acquisition CS- mean,-0.28 (0.41),"-1.09, 0.53",-0.7,0.488 (1)
+Exploratory,Low gad excluded,Intercept,8.13 (0.43),"7.27, 8.98",18.87,<0.001
+Exploratory,Low gad excluded,Treatment sessions completed,-1.53 (0.41),"-2.34, -0.71",-3.7,<0.001
+Exploratory,Low gad excluded,Session 1 GAD-7 total,2.45 (0.51),"1.44, 3.46",4.83,<0.001
+Exploratory,Low gad excluded,Extinction CS+ mean,-0.04 (0.42),"-0.87, 0.79",-0.1,0.921 (1)
+Exploratory,Non-fc predictors,Intercept,8.08 (0.38),"7.33, 8.83",21.27,<0.001
+Exploratory,Non-fc predictors,Treatment sessions completed,-1.52 (0.38),"-2.27, -0.76",-3.97,<0.001
+Exploratory,Non-fc predictors,Session 1 GAD-7 total,2.5 (0.4),"1.7, 3.29",6.21,<0.001
+Exploratory,Non-fc predictors,Baseline ASI total,0.01 (0.4),"-0.77, 0.8",0.03,0.973 (1)
+Exploratory,Non-fc predictors,Intercept,8.08 (0.38),"7.33, 8.84",21.29,<0.001
+Exploratory,Non-fc predictors,Treatment sessions completed,-1.51 (0.38),"-2.27, -0.75",-3.95,<0.001
+Exploratory,Non-fc predictors,Session 1 GAD-7 total,2.43 (0.42),"1.6, 3.26",5.83,<0.001
+Exploratory,Non-fc predictors,Baseline CBAS total,0.18 (0.42),"-0.65, 1.01",0.43,0.668 (1)
+Exploratory,Non-fc predictors,Intercept,8.08 (0.38),"7.33, 8.83",21.27,<0.001
+Exploratory,Non-fc predictors,Treatment sessions completed,-1.51 (0.38),"-2.27, -0.75",-3.93,<0.001
+Exploratory,Non-fc predictors,Session 1 GAD-7 total,2.44 (0.43),"1.6, 3.29",5.72,<0.001
+Exploratory,Non-fc predictors,Baseline eACS total,-0.13 (0.42),"-0.97, 0.71",-0.31,0.756 (1)
+Exploratory,Treatment completers,Intercept,6.78 (0.44),"5.9, 7.66",15.29,<0.001
+Exploratory,Treatment completers,Treatment sessions completed,-0.32 (0.45),"-1.22, 0.58",-0.71,0.479
+Exploratory,Treatment completers,Session 1 GAD-7 total,1.84 (0.44),"0.96, 2.72",4.15,<0.001
+Exploratory,Treatment completers,Acquisition CS- mean,-0.33 (0.46),"-1.25, 0.58",-0.73,0.47 (1)
+Exploratory,Treatment completers,Intercept,6.78 (0.44),"5.9, 7.67",15.24,<0.001
+Exploratory,Treatment completers,Treatment sessions completed,-0.33 (0.45),"-1.23, 0.57",-0.72,0.473
+Exploratory,Treatment completers,Session 1 GAD-7 total,1.84 (0.44),"0.95, 2.72",4.13,<0.001
+Exploratory,Treatment completers,Extinction CS+ mean,-0.21 (0.43),"-1.06, 0.64",-0.5,0.619 (1)

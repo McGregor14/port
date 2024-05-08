@@ -15,7 +15,7 @@ processed_rds_files <-
 
 # Read in all RDS files stored in the folder
 processed_data_list <- processed_rds_files %>%
-  map( ~ read_rds(.))
+  map(~ read_rds(.))
 
 # Remove the pathname, duplicate prefix, and filetype from the names of the
 # list elements
@@ -46,17 +46,31 @@ processed_data_list <-
                         "ieso-data")]
 
 # Merge all elements of the list
-processed_data <- processed_data_list %>%
+processed_data <-
+  processed_data_list %>%
   reduce(full_join, by = "participant_id")
 
 # Reorder biological sex variable
-processed_data <- processed_data %>%
+processed_data <-
+  processed_data %>%
   relocate(demographics_biological_sex,
            .after = demographics_age_at_screening_years)
 
-# Filter out any participant that wasn't eligible after the screening questionnaire
-processed_data <- processed_data %>%
-  filter(port_phone_eligibility == TRUE)
+# Read in the IDs from Redcap. All IDs in this dataset are for consented
+# participants
+port_ids <-
+  read_rds(here("data", "processed", "redcap-data.Rds")) %>%
+  pull(participant_id)
+
+# Filter out any participants that weren't in the Redcap dataset, i.e. they 
+# didn't consent (their data won't have been in merged but their empty row from
+# flare may have)
+processed_data <-
+  processed_data %>%
+  filter(participant_id %in% port_ids)
+
+processed_data %>% 
+  count(ieso_exclusion_port)
 
 # Save data
 saveRDS(

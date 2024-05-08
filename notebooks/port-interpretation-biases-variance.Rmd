@@ -194,8 +194,3 @@ port_data_subsetted %>%
 ggsave(here("reports", "figures", "baseline-biases-heat-map.pdf"), width = 45, height = 35, units = "cm")
 ```
 
-
-
-
-
-
