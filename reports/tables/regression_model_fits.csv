@@ -1,24 +1,24 @@
 Analysis type,Model,R-squared (adjusted),df,F,p-value,n
-Primary,Expectancy ratings (acquisition CS-),0.34 (0.32),"3, 105",18.09,<0.001,109
-Primary,Expectancy ratings (extinction CS+),0.34 (0.32),"3, 105",17.89,<0.001,109
-Secondary,Age and sex adjustment (acquisition CS-),0.36 (0.33),"5, 103",11.57,<0.001,109
-Secondary,Age and sex adjustment (extinction CS+),0.36 (0.33),"5, 103",11.49,<0.001,109
-Secondary,GAD-7 follow up (DV) (acquisition CS-),0.29 (0.27),"3, 101",13.51,<0.001,105
-Secondary,GAD-7 follow up (DV) (extinction CS+),0.28 (0.26),"3, 101",13.18,<0.001,105
-Secondary,FSS follow up (DV) (acquisition CS-),0.54 (0.53),"3, 100",39.25,<0.001,104
-Secondary,FSS follow up (DV) (extinction CS+),0.54 (0.53),"3, 100",39.18,<0.001,104
-Exploratory,Discrimination scores (acquisition),0.34 (0.32),"3, 105",18.1,<0.001,109
-Exploratory,Discrimination scores (extinction),0.34 (0.32),"3, 105",17.91,<0.001,109
-Exploratory,Affective ratings (post-acquisition CS+),0.34 (0.32),"3, 105",17.89,<0.001,109
-Exploratory,Affective ratings (post-acquisition CS-),0.34 (0.32),"3, 105",17.94,<0.001,109
-Exploratory,Affective ratings (post-extinction CS+),0.34 (0.32),"3, 105",18.02,<0.001,109
-Exploratory,Affective ratings (post-extinction CS-),0.35 (0.33),"3, 105",18.53,<0.001,109
-Exploratory,Non-FC predictors (ASI),0.34 (0.32),"3, 105",17.89,<0.001,109
-Exploratory,Non-FC predictors (CBAS),0.34 (0.32),"3, 105",17.98,<0.001,109
-Exploratory,Non-FC predictors (eACS),0.34 (0.32),"3, 105",17.94,<0.001,109
-Exploratory,Depression adjustment (acquisition CS-),0.4 (0.37),"4, 104",17.1,<0.001,109
-Exploratory,Depression adjustment (extinction CS+),0.39 (0.37),"4, 104",16.61,<0.001,109
-Exploratory,Low GAD-7 excluded (acquisition CS-),0.28 (0.26),"3, 94",12.22,<0.001,98
-Exploratory,Low GAD-7 excluded (extinction CS+),0.28 (0.25),"3, 94",12,<0.001,98
-Exploratory,Treatment completers (acquisition CS-),0.19 (0.15),"3, 76",5.81,0.001,80
-Exploratory,Treatment completers (extinction CS+),0.18 (0.15),"3, 76",5.7,0.001,80
+Primary,Expectancy ratings - acquisition CS-,0.34 (0.32),"3,105",18.09,<0.001,109
+Primary,Expectancy ratings - extinction CS+,0.34 (0.32),"3,105",17.89,<0.001,109
+Secondary,Age and sex adjustment - acquisition CS-,0.36 (0.33),"5,103",11.57,<0.001,109
+Secondary,Age and sex adjustment - extinction CS+,0.36 (0.33),"5,103",11.49,<0.001,109
+Secondary,GAD-7 follow-up (DV) - acquisition CS-,0.29 (0.27),"3,101",13.51,<0.001,105
+Secondary,GAD-7 follow-up (DV) - extinction CS+,0.28 (0.26),"3,101",13.18,<0.001,105
+Secondary,FSS follow-up (DV) - acquisition CS-,0.54 (0.53),"3,100",39.25,<0.001,104
+Secondary,FSS follow-up (DV) - extinction CS+,0.54 (0.53),"3,100",39.18,<0.001,104
+Exploratory,Discrimination scores - acquisition,0.34 (0.32),"3,105",18.1,<0.001,109
+Exploratory,Discrimination scores - extinction,0.34 (0.32),"3,105",17.91,<0.001,109
+Exploratory,Affective ratings - acquisition CS+,0.34 (0.32),"3,105",17.89,<0.001,109
+Exploratory,Affective ratings - acquisition CS-,0.34 (0.32),"3,105",17.94,<0.001,109
+Exploratory,Affective ratings - extinction CS+,0.34 (0.32),"3,105",18.02,<0.001,109
+Exploratory,Affective ratings - extinction CS-,0.35 (0.33),"3,105",18.53,<0.001,109
+Exploratory,Non-FC predictors - ASI,0.34 (0.32),"3,105",17.89,<0.001,109
+Exploratory,Non-FC predictors - CBAS,0.34 (0.32),"3,105",17.98,<0.001,109
+Exploratory,Non-FC predictors - eACS,0.34 (0.32),"3,105",17.94,<0.001,109
+Exploratory,Depression adjustment - acquisition CS-,0.4 (0.37),"4,104",17.1,<0.001,109
+Exploratory,Depression adjustment - extinction CS+,0.39 (0.37),"4,104",16.61,<0.001,109
+Exploratory,Low GAD-7 excluded - acquisition CS-,0.28 (0.26),"3,94",12.22,<0.001,98
+Exploratory,Low GAD-7 excluded - extinction CS+,0.28 (0.25),"3,94",12,<0.001,98
+Exploratory,Non-FC predictors - acquisition CS-,0.19 (0.15),"3,76",5.81,0.001,80
+Exploratory,Non-FC predictors - extinction CS+,0.18 (0.15),"3,76",5.7,0.001,80

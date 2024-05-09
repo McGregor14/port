@@ -1379,8 +1379,8 @@ regression_model_coefficients_tidied_primary <-
   select(-`Analysis type`) %>%
   mutate(Model = if_else(
     row_number() <= 4,
-    paste0(Model, " (model 1)"),
-    paste0(Model, " (model 2)")
+    paste0(Model, " - acquisition model"),
+    paste0(Model, " - extinction model")
   )) %>%
   group_by(Model) %>% 
   gt() %>% 
@@ -1407,12 +1407,12 @@ regression_model_coefficients_tidied_secondary <-
   filter(`Analysis type` == "Secondary") %>%
   select(-`Analysis type`) %>%
   mutate(Model_x = case_when(
-    row_number() <= 6 ~ "model 1",
-    row_number() <= 12 ~ "model 2",
-    row_number() <= 16 ~ "model 1",
-    row_number() <= 20 ~ "model 2",
-    row_number() <= 24 ~ "model 1",
-    row_number() <= 28 ~ "model 2"
+    row_number() <= 6 ~ "acquisition model",
+    row_number() <= 12 ~ "extinction model",
+    row_number() <= 16 ~ "acquisition model",
+    row_number() <= 20 ~ "extinction model",
+    row_number() <= 24 ~ "acquisition model",
+    row_number() <= 28 ~ "extinction model"
   )) %>%
   group_by(Model, Model_x) %>% 
   gt() %>% 
@@ -1435,132 +1435,107 @@ suppressMessages(gtsave(
 
 #### All models
 ```{r}
-regression_model_fits <- rbind(
-  pri_acq_minus_model_glance,
-  pri_ext_plus_model_glance,
-  sec_acq_minus_model_glance1,
-  sec_ext_plus_model_glance1,
-  sec_acq_minus_model_glance2,
-  sec_ext_plus_model_glance2,
-  sec_acq_minus_model_glance3,
-  sec_ext_plus_model_glance3,
-  expl_acq_diff_model_glance1,
-  expl_ext_diff_model_glance1,
-  expl_acq_plus_model_glance2,
-  expl_acq_minus_model_glance2,
-  expl_ext_plus_model_glance2,
-  expl_ext_minus_model_glance2,
-  expl_asi_model_glance3,
-  expl_cbas_model_glance3,
-  expl_eacs_model_glance3,
-  expl_acq_minus_model_glance4,
-  expl_ext_plus_model_glance4,
-  expl_acq_minus_model_glance5,
-  expl_ext_plus_model_glance5,
-  expl_acq_minus_model_glance6,
-  expl_ext_plus_model_glance6
+regression_model_fits_tidied <- 
+  bind_rows(
+  lst(
+    pri_acq_minus_model_glance,
+    pri_ext_plus_model_glance,
+    sec_acq_minus_model_glance1,
+    sec_ext_plus_model_glance1,
+    sec_acq_minus_model_glance2,
+    sec_ext_plus_model_glance2,
+    sec_acq_minus_model_glance3,
+    sec_ext_plus_model_glance3,
+    expl_acq_diff_model_glance1,
+    expl_ext_diff_model_glance1,
+    expl_acq_plus_model_glance2,
+    expl_acq_minus_model_glance2,
+    expl_ext_plus_model_glance2,
+    expl_ext_minus_model_glance2,
+    expl_asi_model_glance3,
+    expl_cbas_model_glance3,
+    expl_eacs_model_glance3,
+    expl_acq_minus_model_glance4,
+    expl_ext_plus_model_glance4,
+    expl_acq_minus_model_glance5,
+    expl_ext_plus_model_glance5,
+    expl_acq_minus_model_glance6,
+    expl_ext_plus_model_glance6
+  ),
+  .id = "Model"
 ) %>%
   mutate(
-    analysis = c(
-      "primary - expectancy ratings",
-      "primary - expectancy ratings",
-      "secondary - age and sex adjustment",
-      "secondary - age and sex adjustment",
-      "secondary - gad7 followup dv",
-      "secondary - gad7 followup dv",
-      "secondary - fss followup dv",
-      "secondary - fss followup dv",
-      "exploratory - discrimination scores",
-      "exploratory - discrimination scores",
-      "exploratory - affective ratings",
-      "exploratory - affective ratings",
-      "exploratory - affective ratings",
-      "exploratory - affective ratings",
-      "exploratory - non-fc predictors",
-      "exploratory - non-fc predictors",
-      "exploratory - non-fc predictors",
-      "exploratory - depression adjustment",
-      "exploratory - depression adjustment",
-      "exploratory - low gad excluded",
-      "exploratory - low gad excluded",
-      "exploratory - treatment completers",
-      "exploratory - treatment completers"
+    `Analysis type` = case_when(
+      str_detect(Model, "^pri_") ~ "Primary",
+      str_detect(Model, "^sec_") ~ "Secondary",
+      str_detect(Model, "^expl_") ~ "Exploratory"
     ),
-    model = c(
-      "acquisition_cs_minus",
-      "extinction_cs_plus",
-      "acquisition_cs_minus",
-      "extinction_cs_plus",
-      "acquisition_cs_minus",
-      "extinction_cs_plus",
-      "acquisition_cs_minus",
-      "extinction_cs_plus",
-      "acquisition",
-      "extinction",
-      "post-acquisition_cs_plus",
-      "post-acquisition_cs_minus",
-      "post-extinction_cs_plus",
-      "post-extinction_cs_minus",
-      "asi",
-      "cbas",
-      "eacs",
-      "acquisition_cs_minus",
-      "extinction_cs_plus",
-      "acquisition_cs_minus",
-      "extinction_cs_plus",
-      "acquisition_cs_minus",
-      "extinction_cs_plus"
+    model_a = case_when(
+      str_detect(Model, "_glance$") ~ "Expectancy ratings",
+      str_detect(Model, "^sec.*_glance1$") ~ "Age and sex adjustment",
+      str_detect(Model, "^sec.*_glance2$") ~ "GAD-7 follow-up (DV)",
+      str_detect(Model, "^sec.*_glance3$") ~ "FSS follow-up (DV)",
+      str_detect(Model, "^expl.*_glance1$") ~ "Discrimination scores",
+      str_detect(Model, "^expl.*_glance2$") ~ "Affective ratings",
+      str_detect(Model, "^expl.*_glance3$") ~ "Non-FC predictors",
+      str_detect(Model, "^expl.*_glance4$") ~ "Depression adjustment",
+      str_detect(Model, "^expl.*_glance5$") ~ "Low GAD-7 excluded",
+      str_detect(Model, "^expl.*_glance6$") ~ "Non-FC predictors"
     ),
+    model_b = case_when(
+      str_detect(Model, "acq_plus") ~ "acquisition CS+",
+      str_detect(Model, "acq_minus") ~ "acquisition CS-",
+      str_detect(Model, "ext_plus") ~ "extinction CS+",
+      str_detect(Model, "ext_minus") ~ "extinction CS-",
+      str_detect(Model, "acq_diff") ~ "acquisition",
+      str_detect(Model, "ext_diff") ~ "extinction",
+      str_detect(Model, "asi_model") ~ "ASI",
+      str_detect(Model, "cbas_model") ~ "CBAS",
+      str_detect(Model, "eacs_model") ~ "eACS"
+    ),
+    Model = paste0(model_a, " - ", model_b),
     .before = everything()
   ) %>%
-  mutate(p = if_else(p.value <0.001, paste0("<0.001"), paste0(round(p.value, 3))),
-         across(.cols = where(is.numeric),
-                .fns = ~ round(.x, 2))) %>%
-  separate(analysis,
-           into = c("analysis type", "analysis description"),
-           sep = " - ") %>%
   mutate(
-    `analysis type` = fct_relevel(`analysis type`, c("primary", "secondary", "exploratory")),
-    model = case_match(
-      model,
-      "acquisition_cs_minus" ~ "acquisition CS-",
-      "extinction_cs_plus" ~ "extinction CS+",
-      "post-acquisition_cs_plus" ~ "post-acquisition CS+",
-      "post-acquisition_cs_minus" ~ "post-acquisition CS-",
-      "post-extinction_cs_plus" ~ "post-extinction CS+",
-      "post-extinction_cs_minus" ~ "post-extinction CS-",
-      "asi" ~ "ASI",
-      "cbas" ~ "CBAS",
-      "eacs" ~ "eACS",
-      .default = model
-    )
-  )
-
-
-regression_model_fits_tidied <-
-  regression_model_fits %>%
-  transmute(
-    `Analysis type` = str_to_title(`analysis type`),
-    Model = paste0(str_to_sentence(`analysis description`) %>%
-      str_replace_all(., c(
-        dv = "(DV)",
-        Fss = "FSS",
-        followup = "follow up",
-        Gad7 = "GAD-7",
-        gad = "GAD-7",
-        `Non-fc` = "Non-FC"
-      )), " (", model, ")"),
+    p = if_else(p.value < 0.001, paste0("<0.001"), paste0(round(p.value, 3))),
+    across(.cols = where(is.numeric),
+           .fns = ~ round(.x, 2)),
+    `Analysis type` = fct_relevel(`Analysis type`, c("Primary", "Secondary", "Exploratory")),
     `R-squared (adjusted)` = paste0(r.squared, " (", adj.r.squared, ")"),
-    df = paste0(df, ", ", df.residual),
+    df = paste0(df, ",", df.residual),
     `F` = statistic,
     `p-value` = p,
-    n = nobs)
+    n = nobs
+  ) %>%
+  select(`Analysis type`,
+         Model,
+         `R-squared (adjusted)`,
+         df,
+         `F`,
+         `p-value`,
+         n)
 
 write_csv(regression_model_fits_tidied,
           here("reports", "tables", "regression_model_fits.csv"))
 ```
 
+#### Converted to gt table
 
+```{r}
+regression_model_fits_tidied_gt <- 
+regression_model_fits_tidied %>% 
+  filter(`Analysis type` != "Exploratory") %>%
+  group_by(`Analysis type`) %>% 
+  gt()
+
+regression_model_fits_tidied_gt
+
+suppressMessages(gtsave(
+  regression_model_fits_tidied_gt,
+  filename = here("reports", "tables", "regression_model_fits_table.png"),
+  expand = 10
+))
+```
 
 ## Not pre-registered {.tabset}
 
