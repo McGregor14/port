@@ -71,7 +71,7 @@ port_completed_baseline <-
 port_data_subsetted <- 
   port_data %>% 
   filter(port_exclusion == FALSE) %>% 
-  dplyr::select(
+  select(
     ieso_treatment_completed_total,
     demographics_age_at_screening_years,
     demographics_biological_sex,
