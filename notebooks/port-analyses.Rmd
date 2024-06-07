@@ -396,10 +396,10 @@ primary_models_tidy %>%
     round(pri_ext_plus_model$coefficients[1], digits = 2)
   ))
 
-suppressMessages(ggsave(
-  here("reports", "figures", "primary-regression-forest-plot.png"),
+ggsave(
+  here("reports", "figures", "primary-regression-forest-plot.pdf"),
   bg = "white"
-))
+)
 ```
 
 ## Secondary
@@ -1638,44 +1638,44 @@ breaks_fun <- function(x) {
 ```
 
 ```{r elephant plot}
-elephant_plot_exclusions_applied <- elephant_long %>% 
+elephant_plot_exclusions_applied <- elephant_long %>%
   ggplot(aes(x = Trial, y = mean, color = Stimulus)) +
   geom_point() +
   geom_line() +
-  geom_ribbon(aes(ymin = ci_low, ymax = ci_high, fill = Stimulus),
-              linetype = 0,
-              alpha = 0.3,
-              linewidth = 0.8
+  geom_ribbon(
+    aes(ymin = ci_low, ymax = ci_high, fill = Stimulus),
+    linetype = 0,
+    alpha = 0.3,
+    linewidth = 0.8
   ) +
   scale_fill_manual(values = c("#811D1C", "#153860")) +
   scale_colour_manual(values = c("#811D1C", "#153860")) +
-  facet_grid(~ Phase, 
-               scales = "free_x",
-               space = "free_x"
-    ) +
-    # adjust the labels
-    labs(y="Mean expectancy rating", 
-         x = "Trials"
-    ) +
-    theme(strip.background = element_blank(),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          legend.position = 'bottom',
-          text = element_text(size = 10),
-          strip.text.x = element_text(size = 10)
-    ) +
-    scale_x_continuous(breaks = breaks_fun) +
-    scale_y_continuous(breaks = seq(0, 10, by = 1), limits = c(1, 9))
+  facet_grid( ~ Phase,
+              scales = "free_x",
+              space = "free_x") +
+  # adjust the labels
+  labs(y = "Mean expectancy rating",
+       x = "Trials") +
+  theme(
+    strip.background = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.position = 'bottom',
+    text = element_text(size = 10),
+    strip.text.x = element_text(size = 10)
+  ) +
+  scale_x_continuous(breaks = breaks_fun) +
+  scale_y_continuous(breaks = seq(0, 10, by = 1), limits = c(1, 9))
 
 elephant_plot_exclusions_applied
 
 # Save
 ggsave(
-  file = paste0(here("reports", "figures"), "/elephant-plot_exclusions-applied.png"), 
-  plot = elephant_plot_exclusions_applied, 
-  width = 16, 
-  height = 8, 
+  file = here("reports", "figures", "elephant-plot_exclusions-applied.pdf"),
+  plot = elephant_plot_exclusions_applied,
+  width = 16,
+  height = 8,
   units = "cm",
   bg = "white"
-  )
+)
 ```
