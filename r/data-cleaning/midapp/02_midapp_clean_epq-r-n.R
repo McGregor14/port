@@ -15,7 +15,7 @@ midapp_interim_data_loc <-
 
 # Read in dataset
 epq_r_n_data <-
-  read_rds(paste0(midapp_interim_data_loc, "/midapp-epq_r_n-data", ".Rds")) %>%
+  read_rds(paste0(midapp_interim_data_loc, "/midapp-epq-r-n-data", ".Rds")) %>%
   remove_empty(which = c("rows", "cols")) %>%
   remove_constant(na.rm = T, quiet = F)
 

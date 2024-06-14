@@ -15,7 +15,7 @@ midapp_interim_data_loc <-
 
 # Read in dataset
 bis_bas_data <-
-  read_rds(paste0(midapp_interim_data_loc, "/midapp-bis_bas-data", ".Rds")) %>%
+  read_rds(paste0(midapp_interim_data_loc, "/midapp-bis-bas-data", ".Rds")) %>%
   # remove_empty: removes empty rows and columns
   # remove_constant: removes constant columns
   remove_empty(which = c("rows", "cols")) %>%

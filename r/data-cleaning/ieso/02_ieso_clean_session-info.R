@@ -981,8 +981,8 @@ session_data <- session_data_list %>%
 
 # Save wide dataset
 saveRDS(session_data,
-        here("data", "interim", "ieso", "step-02", "session_info.Rds"))
+        here("data", "interim", "ieso", "step-02", "session-info.Rds"))
 
 # Save long dataset
 saveRDS(session_data_long,
-        here("data", "processed", "treatment_data_long.Rds"))
+        here("data", "processed", "treatment-data-long.Rds"))

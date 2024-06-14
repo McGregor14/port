@@ -161,4 +161,4 @@ patient_data <-
 
 # Save data ---------------------------------------------------------------
 saveRDS(patient_data,
-        here("data", "interim", "ieso", "step-02", "patient_info.Rds"))
+        here("data", "interim", "ieso", "step-02", "patient-info.Rds"))

@@ -1,3 +1,5 @@
+# Script for validating data - unsure if complete
+
 # Clear the environment
 rm(list = ls())
 

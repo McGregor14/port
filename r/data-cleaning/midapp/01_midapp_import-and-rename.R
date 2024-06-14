@@ -67,11 +67,11 @@ mid_app_data <- mid_app_data %>%
   select(participant_id, starts_with("ius12"))
 
 # BIS-BAS
-`midapp-bis_bas-data` <- mid_app_data %>%
+`midapp-bis-bas-data` <- mid_app_data %>%
   select(participant_id, starts_with("bis_bas"))
 
 # EPQ-R-N
-`midapp-epq_r_n-data` <- mid_app_data %>%
+`midapp-epq-r-n-data` <- mid_app_data %>%
   select(participant_id, starts_with("epq_r_n"))
 
 # Remove datasets that aren't going to be saved

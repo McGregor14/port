@@ -27,7 +27,7 @@ ieso_data_names <- ieso_data_list %>%
 names(ieso_data_list) <- ieso_data_names
 
 # Reorder the list ready for merging
-ieso_data_list <- ieso_data_list[c("patient_info", "session_info")]
+ieso_data_list <- ieso_data_list[c("patient-info", "session-info")]
 
 # Merge all elements of the list
 ieso_data <- ieso_data_list %>%
