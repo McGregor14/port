@@ -22,7 +22,7 @@ epq_r_n_data <-
 # Generate derived variables
 epq_r_n_data <- epq_r_n_data %>%
   mutate(
-    epq_r_midapp_nscale = rowSums(select(., contains("epq_r_nscale"))))
+    epq_r_nscale_midapp_total = rowSums(select(., contains("epq_r_nscale"))))
 
 # Save data
 saveRDS(epq_r_n_data,

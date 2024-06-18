@@ -53,6 +53,10 @@ ius_data <- ius_data %>%
     
   )
 
+# Reorder items
+ius_data <- ius_data %>%
+  relocate(ius12_followup_2, .after = ius12_followup_1)
+
 # Save data
 saveRDS(ius_data,
         here("data", "interim", "redcap", "step-02", "ius.Rds"))

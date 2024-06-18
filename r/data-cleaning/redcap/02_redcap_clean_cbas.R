@@ -37,7 +37,7 @@ cbas_data <- cbas_data %>%
       )
     ),
     
-    # CBAS behavioural non-social subscale: 3, 6, 9, 10, 11, 13, 28
+    # CBAS behavioural non-social subscale: 3, 6, 9, 11, 13, 28
     cbas_baseline_behavioural_nonsocial = rowSums(
       select(
         .,
